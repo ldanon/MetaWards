@@ -28,10 +28,12 @@ int main(int argc, char *argv[]){
 
 	double beta[N_INF_CLASSES];
 	double scaling;
-
-	gsl_rng * r; // random number generator stuff;
+  printf("OK\n");
+	
+	gsl_rng *r; // random number generator stuff;
 	
 	r = gsl_rng_alloc (gsl_rng_default);
+	
 	gsl_rng_set (r, -1*(int)time(NULL) + atoi(argv[1]));
 	
 	
@@ -43,10 +45,14 @@ int main(int argc, char *argv[]){
 
 	par=InitialiseParameters();
 	
-	SetInputFileNames(2,par);
-
+	SetInputFileNames(4,par);
+	printf("----%s\n",par->PlayName);
+	
 	nseeds=ReadDoneFile(par->SeedName,to_seed);
-
+	printf("----%s\n",par->PlayName);
+	
+	printf("2\n");
+	
 	net=BuildWardsNetworkDistance(par);
 	if(net==NULL){
 		printf("network not found, exiting\n");

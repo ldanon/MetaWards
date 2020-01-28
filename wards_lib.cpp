@@ -1190,16 +1190,19 @@ void GetMinMaxDistances(network *net, double *min, double *max){
 
 
 int ReadDoneFile(char *fname,int *nodes_seeded){
+  printf("%s\n",fname);
 	FILE *inF=fopen(fname,"r");
 	int i=0,i1;
 	
+	printf("%p -- \n",inF);
 	
 	while(!feof(inF)){
-		fscanf(inF,"%d\n",&i1);
+	  fscanf(inF,"%d\n",&i1);
 		nodes_seeded[i]=i1;
 		i++;
 	}
 	fclose(inF);
+	
 	return i;
 	
 }
@@ -1609,7 +1612,6 @@ void SetInputFileNames(int choice,parameters *par){
 			strcpy(par->NodesToTrack,"/Users/ldanon/data/seeds.dat");
 
 			strcpy(par->AdditionalSeeding,"/Users/ldanon/data/ExtraSeeds.dat");
-
 			return;
 			break;
 		case 3:
@@ -1631,6 +1633,23 @@ void SetInputFileNames(int choice,parameters *par){
 
 			return;
 			break;
+	 case 4:
+	    printf("Using files in /Users/ld450/GitHub/MetaWards/data/ \n");//for Macs 
+	    strcpy(par->WorkName,"/Users/ld450/GitHub/MetaWards/data/UK1.dat");
+      strcpy(par->PlayName,"/Users/ld450/GitHub/MetaWards/data/Weights_new.dat");
+	    strcpy(par->IdentifierName,"/Users/ld450/GitHub/MetaWards/data/Identifiers.dat");
+	    strcpy(par->IdentifierName2,"/Users/ld450/GitHub/MetaWards/data/level3.dat");
+	  
+	    strcpy(par->WeekendName,"/Users/ld450/GitHub/MetaWards/data/WeekendMatrix.dat");
+	    strcpy(par->PlaySizeName,"/Users/ld450/GitHub/MetaWards/data/PlaySize.dat");
+	    strcpy(par->PositionName,"/Users/ld450/GitHub/MetaWards/data/CBB.dat");
+	    strcpy(par->SeedName,"/Users/ld450/GitHub/MetaWards/data/seeds.dat");
+	    strcpy(par->NodesToTrack,"/Users/ld450/GitHub/MetaWards/data/seeds.dat");
+	  
+	    strcpy(par->AdditionalSeeding,"/Users/ld450/GitHub/MetaWards/data/ExtraSeeds.dat");
+	  return;
+	  break;
+	  
 		default:
 			printf("WRONG WRONG WRONG\n");
 			return;

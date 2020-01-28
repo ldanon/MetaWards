@@ -42,19 +42,19 @@
 typedef struct parameters{
 
 //	FILENAMES:
-	char WorkName[50]; // WORK MATRIX
-	char PlayName[50]; // PLAY MATRIX
-	char WeekendName[50]; // WEEKENDMATRIX
-	char IdentifierName[50]; // WARD NAMES 
-	char IdentifierName2[50]; // WARD ID's (Communities, Counties, Districts, UA's etc);
+	char WorkName[100]; // WORK MATRIX
+	char PlayName[100]; // PLAY MATRIX
+	char WeekendName[100]; // WEEKENDMATRIX
+	char IdentifierName[100]; // WARD NAMES 
+	char IdentifierName2[100]; // WARD ID's (Communities, Counties, Districts, UA's etc);
 
-	char PositionName[50]; // CENTRE of BOUNDING BOXES	
-	char PlaySizeName[50]; // SIZE OF POPULATION IN THE PLAY PILE 
+	char PositionName[100]; // CENTRE of BOUNDING BOXES	
+	char PlaySizeName[100]; // SIZE OF POPULATION IN THE PLAY PILE 
 
-	char SeedName[50]; // LIST OF SEED NODES
-	char NodesToTrack[50]; // LIST OF NODES TO TRACK
+	char SeedName[100]; // LIST OF SEED NODES
+	char NodesToTrack[100]; // LIST OF NODES TO TRACK
 
-	char AdditionalSeeding[50]; // LIST OF EXTRA SEED WARDS...
+	char AdditionalSeeding[100]; // LIST OF EXTRA SEED WARDS...
 
 	double beta[N_INF_CLASSES];
 	double TooIllToMove[N_INF_CLASSES];
