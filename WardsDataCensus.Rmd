@@ -1,0 +1,158 @@
+---
+title: "Meta Wards"
+output: html_notebook
+---
+
+# Processing the census 
+
+The purpose of this file is to collect information, and data required for the Wards Model. We need:
+1) origin destination data, 
+
+
+```{r libs}
+library(tidyverse)
+library(rgdal)
+library(leaflet)
+library(maptools)
+library(broom)
+# set factors to false
+options(stringsAsFactors = FALSE)
+
+
+```
+
+
+
+
+
+# Processing Origin-Destination data
+
+
+We need to generate a commuter matrix from Ward to Ward. Data are available from ONS. Below we detail the procedure if we need to repreat. 
+
+
+
+1. Download Ward lookups for Census Merged Wards to Original Wards from 
+
+https://geoportal.statistics.gov.uk/datasets/ward-to-census-merged-ward-to-local-authority-district-december-2011-lookup-in-england-and-wales
+
+2. Then download the lookup from Output Areas to Ward level. 
+
+https://geoportal.statistics.gov.uk/datasets/output-area-to-ward-to-local-authority-district-december-2018-lookup-in-england-and-wales
+
+3. Use left_join to combine them into a master lookup table. 
+
+
+```{r process }
+
+OA2Ward = read.csv('~/GitHub/MetaWards/data/2011/Output_Area_to_Ward_to_Local_Authority_District_December_2011_Lookup_in_England_and_Wales.csv') # maps OA to Ward data
+
+wardlookup<-read.csv('~/GitHub/MetaWards/data/2011/WardsProcessing/Ward_Lookup.csv')
+
+OA2Ward %>% left_join(.,wardlookup,by=c('WD11CD'='WD11CD'))->OA2WardLookup
+
+write.csv(file="WardLookupMaster.csv",OA2WardLookup)
+
+```
+
+4. Download the bulk data for Output Area to Output Area commuter numbers from:
+https://www.nomisweb.co.uk/census/2011/bulk/rOD1
+
+at Output Area level. 
+
+5. We need to aggregate up to Ward level, which we do below. 
+
+```{r process origin-destination}
+
+#4
+
+OA2OAmovements = read.csv(file='data/2011/WardsProcessing/bulk/wf01bew_oa_v1.csv', header=F)# Output area to output area commuting. 
+
+#5
+
+
+OA2OAmovements %>% 
+  inner_join(.,OA2WardLookup, by = c('V1'='OA11CD')) %>% # match output area  to ward for first column
+  inner_join(.,OA2WardLookup, by = c('V2'='OA11CD'))%>% # match output area  to ward for second column
+  select(from=FID.x,to=FID.y,ObjectID=ObjectId.x,V3) %>%        # remove columns  that are not needed
+  group_by(from,to) %>% 
+  summarize(total=sum(V3)) %>% 
+  ungroup->Ward2Ward
+
+
+
+```
+
+The Ward identifier is "FID", which seems to go from 1 to 8588, and is the index which will be used in the code. 
+
+
+```{r}
+Ward2Ward %>% ggplot(aes(x=total)) +
+  geom_freqpoly()+
+  scale_x_log10()+
+  scale_y_log10()+ # checking the histogram makes sense. 
+
+
+write.table(file='EW.dat',Ward2Ward,col.names = FALSE,row.names=F)
+
+
+```
+
+We also need a population size per ward, population working per ward and population not working per ward. 
+
+
+
+# Ward population sizes
+
+Population sizes from here:
+https://www.ons.gov.uk/peoplepopulationandcommunity/populationandmigration/populationestimates/datasets/wardlevelmidyearpopulationestimatesexperimental
+
+
+```{r}
+
+PopSizePerWard=read.csv('data/2011/PopSizePerWard.csv') # table from above
+
+wardlookup %>% 
+  inner_join(.,PopSizePerWard,by=c('WD11CD'='geography.code'))->wardlookupWithPop # join with population ward lookup tables
+
+Ward2Ward %>% 
+  group_by(from) %>% 
+  summarise(WorkSize=sum(total)) ->WorkSize # sum up the populations commuting to give us the commuting size
+
+write.table(file='WorkSize.dat',WorkSize,col.names = FALSE,row.names=F) # write WorkPopulation per ward to file
+
+WorkSize %>% 
+  inner_join(.,wardlookupWithPop,by=c("from"="FID"))->wardlookupWithPop2 # join with ward lookup file
+
+wardlookupWithPop2 %>% 
+  select(Ward=from,All=Variable..All.usual.residents..measures..Value,WorkSize) %>% 
+  mutate(PlaySize=All-WorkSize) %>% 
+  mutate(PlaySize=ifelse(PlaySize<0,0,PlaySize))->wardlookupWithPop3
+
+wardlookupWithPop3%>% 
+  select(from=Ward,PlaySize) %>% 
+  write.table(.,file="PlaySize.dat",col.name=FALSE,row.names=FALSE)
+
+```
+
+# Non-commuter matrix
+
+```{r}
+wardlookupWithPop3%>% 
+  select(from=Ward,PlaySize)-> 
+  play
+
+
+Ward2Ward %>% 
+  group_by(from) %>% 
+  mutate(rate=total/sum(total)) %>% 
+  ungroup() %>% 
+  inner_join(.,play,by='from') %>% 
+  mutate(PlayTotal=round(rate*PlaySize))->Ward2WardAll
+  
+Ward2WardAll %>% 
+  select(from,to,PlayTotal) %>% 
+  write.table(.,file="PlayMatrix.dat",row.names=F,col.names=F)
+
+
+```

@@ -1,0 +1,74 @@
+---
+title: "Process Wards Maps"
+output: html_notebook
+---
+
+```{r}
+setwd('~/GitHub/MetaWards/data/2011/shapefile/')
+library(tidyverse)
+library(sf)
+library(rgdal)
+library(viridis)
+```
+
+# Read the shapefile
+
+The shapefiles is found here:
+
+https://geoportal.statistics.gov.uk/datasets/wards-december-2011-boundaries-ew-bfc
+
+```{r}
+
+#WardsEW <- readOGR(dsn='./WardsEW',layer = 'WardsEW')
+
+WardsEW <- read_sf(dsn='~/GitHub/MetaWards/data/2011/shapefile/Wards_December_2011_Boundaries_EW_BFC',layer = 'Wards_December_2011_Boundaries_EW_BFC')
+
+```
+
+# Find ward centroids for distances within code. 
+
+```{r}
+
+wardlookup<-read.csv('~/GitHub/MetaWards/data/2011/WardsProcessing/Ward_Lookup.csv') 
+
+st_centroid(WardsEW) %>% st_as_sf()->wardCentroids
+
+wardCentroids %>% 
+  inner_join(.,wardlookup,by=c('wd11cd'='WD11CD'))->wardslookup2 
+
+wardslookup2%>% 
+  write.csv(file='~/GitHub/MetaWards/data/2011/WardsProcessing/Ward_Lookup_Centroids.csv')
+
+
+wardslookup2 %>% 
+  select(FID,geometry) %>% # select out the cenres of bounding boxes
+  rowwise() %>% # process per row
+  mutate(x=geometry[[1]],y=geometry[[2]]) %>% 
+  select(FID,x,y) %>% 
+  arrange(FID) %>% 
+  write.table(.,file='~/GitHub/MetaWards/data/2011/WardsProcessing/CBB2011.dat',row.names = F,col.names = F)
+  
+
+```
+# Leaflet for mapping
+
+```{r}
+library(leaflet)
+library(mapview)
+
+WardsEW %>% 
+  filter(objectid%in%seq(1,100))->tmp
+
+#tmp%>% ggplot() +
+#  geom_sf(aes(fill = st_areasha)) +
+#   scale_fill_viridis("Area")
+
+st_centroid(tmp) %>% st_as_sf()->t2
+
+
+
+mapview(list(tmp,t2))
+```
+
+
+
