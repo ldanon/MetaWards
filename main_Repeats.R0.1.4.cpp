@@ -46,11 +46,9 @@ int main(int argc, char *argv[]){
 	par=InitialiseParameters();
 	
 	SetInputFileNames(4,par);
-	printf("----%s\n",par->PlayName);
-	
+
 	nseeds=ReadDoneFile(par->SeedName,to_seed);
-	printf("----%s\n",par->PlayName);
-	
+
 	printf("2\n");
 	
 	net=BuildWardsNetworkDistance(par);
@@ -70,7 +68,7 @@ int main(int argc, char *argv[]){
 	par->DynDistCutoff=*max+1;
 
 	for(i=0;i<N_INF_CLASSES;i++)beta[i]=par->beta[i];
-	for(i=0;i<N_INF_CLASSES;i++)par->beta[i]=beta[i]*(1.4/1.9);
+//	for(i=0;i<N_INF_CLASSES;i++)par->beta[i]=beta[i]*(1.4/1.9);
 	
 	s=-1;
 	
@@ -78,7 +76,7 @@ int main(int argc, char *argv[]){
 	RescalePlayMatrix(net,par);
 	
 	par->PlayToWork=0;
-	par->WorkToPlay=0;
+	par->WorkToPlay=0.9;
 
 	MovePopulationFromPlayToWork(net,par,r);
 	

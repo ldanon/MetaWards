@@ -92,12 +92,13 @@ network *BuildWardsNetwork(parameters *par)
 //			weight=0;
 //		}
 		nlinks++;
-		
+
 		if(from==0||to==0){
 			printf("ERROR: Zero in link list\n node1:%d node2:%d\n",from,to);
 			printf("Renumber Files and start again!!!\n");
 			return NULL;
 		}
+		
 		if(nlist[from].label==-1){
 			nlist[from].label=from;
 			nlist[from].begin_to=nlinks;
@@ -108,12 +109,12 @@ network *BuildWardsNetwork(parameters *par)
 		if(from==to)nlist[from].self_w=nlinks;
 
 		nlist[from].end_to++;
-				
 		llist[nlinks].ifrom=from;
 
 		llist[nlinks].ito=to;
-
+		
 		llist[nlinks].weight=(int)weight;
+	  	
 		llist[nlinks].suscept=(int)weight;
 		
 		nlist[from].Denominator_N+=(int)weight;
@@ -124,7 +125,6 @@ network *BuildWardsNetwork(parameters *par)
 	
 	net->nnodes=nnod;
 	net->nlinks=nlinks;
-
 	FillInGaps(net);
 
 	BuildPlayMatrix(net,par);
@@ -177,7 +177,7 @@ network *BuildWardsNetworkDistance(parameters *par)
 	while( !feof(locf) ){
 		fscanf(locf,"%d %lf %lf\n",&i1,&x,&y);
 		if(i1>net->nnodes){
-			printf("problems, input in location file is out of range: \n i1 = %d and net->nnodes = \n ",
+			printf("problems, input in location file is out of range: \n i1 = %d and net->nnodes = %d\n ",
 				   i1,net->nnodes);
 		}
 		wards[i1].x=x;
@@ -447,7 +447,9 @@ void BuildPlayMatrix(network *net,parameters *par){
 		fscanf(inFile,"%d %d %lf\n",&from,&to,&weight);
 		//if(from!=to){weight=0.0;}
 		nlinks++;
-
+		if(nlinks>2413000){
+      printf("%d\n",nlinks);
+		}
 		if(from==0||to==0){
 			printf("ERROR: Zero in link list\n node1:%d node2:%d\n",from,to);
 			printf("Renumber Files and start again!!!\n");
@@ -1420,8 +1422,8 @@ int ExtractData(network *net,int **inf,int **pinf, int t, FILE **files){
 	}
 	else {
 
-		fprintf(files[2],"%d %lf %lf\n",t,0,0);
-		fprintf(files[5],"%d %lf %lf\n",t,0,0);
+		fprintf(files[2],"%d %lf %lf\n",t,0.0,0.0);
+		fprintf(files[5],"%d %lf %lf\n",t,0.0,0.0);
 		fprintf(files[6],"%d %lf\n",t,0.0);
 	
 	}
@@ -1634,19 +1636,19 @@ void SetInputFileNames(int choice,parameters *par){
 			return;
 			break;
 	 case 4:
-	    printf("Using files in /Users/ld450/GitHub/MetaWards/data/ \n");//for Macs 
-	    strcpy(par->WorkName,"/Users/ld450/GitHub/MetaWards/data/UK1.dat");
-      strcpy(par->PlayName,"/Users/ld450/GitHub/MetaWards/data/Weights_new.dat");
-	    strcpy(par->IdentifierName,"/Users/ld450/GitHub/MetaWards/data/Identifiers.dat");
-	    strcpy(par->IdentifierName2,"/Users/ld450/GitHub/MetaWards/data/level3.dat");
+	    printf("Using files in /Users/ld450/GitHub/MetaWards/2011data/ \n");//for 2011 data 
+	    strcpy(par->WorkName,"/Users/ld450/GitHub/MetaWards/2011data/EW1.dat");
+      strcpy(par->PlayName,"/Users/ld450/GitHub/MetaWards/2011data/EW1.dat");
+//	    strcpy(par->IdentifierName,"/Users/ld450/GitHub/MetaWards/data/Identifiers.dat");
+//	    strcpy(par->IdentifierName2,"/Users/ld450/GitHub/MetaWards/data/level3.dat");
 	  
-	    strcpy(par->WeekendName,"/Users/ld450/GitHub/MetaWards/data/WeekendMatrix.dat");
-	    strcpy(par->PlaySizeName,"/Users/ld450/GitHub/MetaWards/data/PlaySize.dat");
-	    strcpy(par->PositionName,"/Users/ld450/GitHub/MetaWards/data/CBB.dat");
-	    strcpy(par->SeedName,"/Users/ld450/GitHub/MetaWards/data/seeds.dat");
-	    strcpy(par->NodesToTrack,"/Users/ld450/GitHub/MetaWards/data/seeds.dat");
+//	    strcpy(par->WeekendName,"/Users/ld450/GitHub/MetaWards/data/WeekendMatrix.dat");
+	    strcpy(par->PlaySizeName,"/Users/ld450/GitHub/MetaWards/2011data/PlaySize.dat");
+	    strcpy(par->PositionName,"/Users/ld450/GitHub/MetaWards/2011data/CBB2011.dat");
+	    strcpy(par->SeedName,"/Users/ld450/GitHub/MetaWards/2011data/seeds.dat");
+	    strcpy(par->NodesToTrack,"/Users/ld450/GitHub/MetaWards/2011data/seeds.dat");
 	  
-	    strcpy(par->AdditionalSeeding,"/Users/ld450/GitHub/MetaWards/data/ExtraSeeds.dat");
+	    strcpy(par->AdditionalSeeding,"/Users/ld450/GitHub/MetaWards/2011data/ExtraSeeds.dat");
 	  return;
 	  break;
 	  
@@ -1927,7 +1929,7 @@ void Iterate(network *net, int **inf, int **playinf, parameters *par, gsl_rng *r
 
 		if(wards[j].play_suscept<0.0){
 
-			printf("play_suscept is less that 0, problem\n");
+			printf("play_suscept is less than 0, problem %d\n",wards[j].label);
 
 		}
 

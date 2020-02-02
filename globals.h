@@ -1,10 +1,10 @@
 #ifndef _GLOBALS_H
 #define _GLOBALS_H
 
-//#define FLU
-#define FLU2
+#define FLU
+//#define FLU2
 //#define POX
-//#define DEFAULT
+//define DEFAULT
 //#define VACCINATE
 
 //#define SELFISOLATE
@@ -17,8 +17,7 @@
 
 #define NAMESIZEMAX 10
 #define MAXSIZE 10050 // this needs to be more or less accurate, plz. 
-#define MAXLINKS 1563387
-
+#define MAXLINKS 2414000
 #ifdef FLU
 	#define N_INF_CLASSES 5
 	#define START_SYMPTOM 2
@@ -34,7 +33,7 @@
 
 #endif
 #ifdef DEFAULT 
-	#define N_INF_CLASSES 2
+	#define N_INF_CLASSES 3
 	#define START_SYMPTOM 1
 #endif
 
