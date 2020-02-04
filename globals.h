@@ -40,7 +40,7 @@
 #endif
 
 #ifdef NCOV
-  #define N_INF_CLASSES 4
+  #define N_INF_CLASSES 5
   #define START_SYMPTOM 3
 #endif
 

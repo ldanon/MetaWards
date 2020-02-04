@@ -95,27 +95,6 @@ wardCentroids %>%
 ```
 
 
-
-```{r}
-
-
-allinfection %>% 
-  
-
-
-day200=t(as.matrix(allinfections[200,]))
-day336=t(as.matrix(allinfections[336,]))
-plot(day336-day200)
-plot(day336)
-
-ec1=rowSums(allinfections,na.rm=T)
-which.max(ec1)
-plot(ec1)
-
-length(rowSums(allinfections,na.rm=T))
-```
-
-
 ```{r}
 
 allinfections=read.table(file='ForMattData.dat',sep = ' ')
@@ -143,10 +122,12 @@ inf_long %>%
 #   geom_line()
 
 ```
-```{r}
-wardslookup2 %>% inner_join(.,arrivals, by=c('FID'='Ward'))->wardslookuparrival
 
-mapview(wardslookuparrival,zcol='Arrival',cex = 'Arrival')
+```{r}
+wardslookup2 %>% inner_join(.,arrivals, by=c('FID'='Ward')) %>% 
+  mutate(AltArrival=log(1/Arrival)*100)->wardslookuparrival
+
+mapview(wardslookuparrival,zcol='AltArrival',cex = 'AltArrival')
 
 # Time to peak. 
 # Time to 10 cases.

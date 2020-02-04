@@ -1544,10 +1544,10 @@ parameters *InitialiseParameters(){
 #endif
 	
 #ifdef NCOV
-	double beta[N_INF_CLASSES]={		0, 0.6, 1.07, 0};
-	double Progress[N_INF_CLASSES]={	1, 1.0/5.0, 1.0/6.0, 0};
-	double TooIllToMove[N_INF_CLASSES]={    0, 0, 0.8, 1};
- 	double ContribFOI[N_INF_CLASSES]={	1, 1,   1,   0}; // set to 1 for the time being;
+	double beta[N_INF_CLASSES]={	0, 0, 0.5, 0.5, 0};
+	double Progress[N_INF_CLASSES]={	1, 1.0/5.2, 1.0/2.0, 1/3.0, 0};
+	double TooIllToMove[N_INF_CLASSES]={ 0, 0, 0, 0.8, 0};
+ 	double ContribFOI[N_INF_CLASSES]={1, 1, 1, 1, 0}; // set to 1 for the time being;
 #endif
 	
 	int i;
