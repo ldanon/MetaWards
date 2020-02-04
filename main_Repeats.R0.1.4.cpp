@@ -62,7 +62,7 @@ int main(int argc, char *argv[]){
 	inf=InitialiseInfections(net);
 	playinf=InitialisePlayInfections(net);
 	
-
+  
 	GetMinMaxDistances(net,min,max);
 
 	par->DynDistCutoff=*max+1;
@@ -71,12 +71,12 @@ int main(int argc, char *argv[]){
 //	for(i=0;i<N_INF_CLASSES;i++)par->beta[i]=beta[i]*(1.4/1.9);
 	
 	s=-1;
-	
+	par->StaticPlayAtHome=1.0;
 	ResetEverything(net,par);
 	RescalePlayMatrix(net,par);
 	
 	par->PlayToWork=0;
-	par->WorkToPlay=0.9;
+	par->WorkToPlay=0;
 
 	MovePopulationFromPlayToWork(net,par,r);
 	

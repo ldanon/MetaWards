@@ -1542,6 +1542,14 @@ parameters *InitialiseParameters(){
 	double TooIllToMove[N_INF_CLASSES]={0,0,0};
 	double ContribFOI[N_INF_CLASSES]={1,1,0};
 #endif
+	
+#ifdef NCOV
+	double beta[N_INF_CLASSES]={		0, 0.6, 1.07, 0};
+	double Progress[N_INF_CLASSES]={	1, 1.0/5.0, 1.0/6.0, 0};
+	double TooIllToMove[N_INF_CLASSES]={    0, 0, 0.8, 1};
+ 	double ContribFOI[N_INF_CLASSES]={	1, 1,   1,   0}; // set to 1 for the time being;
+#endif
+	
 	int i;
 	parameters *par;
 	
@@ -1638,7 +1646,7 @@ void SetInputFileNames(int choice,parameters *par){
 	 case 4:
 	    printf("Using files in /Users/ld450/GitHub/MetaWards/2011data/ \n");//for 2011 data 
 	    strcpy(par->WorkName,"/Users/ld450/GitHub/MetaWards/2011data/EW1.dat");
-      strcpy(par->PlayName,"/Users/ld450/GitHub/MetaWards/2011data/EW1.dat");
+      strcpy(par->PlayName,"/Users/ld450/GitHub/MetaWards/2011data/PlayMatrix.dat");
 //	    strcpy(par->IdentifierName,"/Users/ld450/GitHub/MetaWards/data/Identifiers.dat");
 //	    strcpy(par->IdentifierName2,"/Users/ld450/GitHub/MetaWards/data/level3.dat");
 	  
@@ -1697,7 +1705,7 @@ void Iterate(network *net, int **inf, int **playinf, parameters *par, gsl_rng *r
 				if(inf[i][j]>0){	
 					
 					if(inf[i][j]>(int)links[j].weight){
-					//	printf("inf[%d][%d] %d > links[j].weight %lf\n",i,j,inf[i][j],links[j].weight );
+						printf("inf[%d][%d] %d > links[j].weight %lf\n",i,j,inf[i][j],links[j].weight );
 					}
 					if(links[j].distance<cutoff){
 #ifdef SELFISOLATE
