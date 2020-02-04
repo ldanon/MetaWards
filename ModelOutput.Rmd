@@ -58,7 +58,8 @@ read.csv(file='PlayInfections.dat',sep=' ') %>%
 workinf %>% 
   pivot_longer(-Time,names_to = 'Classes',values_to = 'NumberInfected')%>% 
   ggplot(aes(x=Time,y=NumberInfected,colour=Classes))+
-  geom_line()
+  geom_line()+
+  scale_y_log10()
 
 
 ```
@@ -88,7 +89,7 @@ wardCentroids %>%
 
 
 
-mapview(wardslookup2,zcol='FID')
+#mapview(wardslookup2,zcol='FID')
 
 
 ```
@@ -147,5 +148,7 @@ wardslookup2 %>% inner_join(.,arrivals, by=c('FID'='Ward'))->wardslookuparrival
 
 mapview(wardslookuparrival,zcol='Arrival',cex = 'Arrival')
 
+# Time to peak. 
+# Time to 10 cases.
 ```
 

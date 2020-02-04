@@ -151,7 +151,7 @@ Ward2Ward %>%
   mutate(PlayTotal=round(rate*PlaySize))->Ward2WardAll
   
 Ward2WardAll %>% 
-  select(from,to,PlayTotal) %>% 
+  select(from,to,rate) %>% 
   write.table(.,file="PlayMatrix.dat",row.names=F,col.names=F)
 
 

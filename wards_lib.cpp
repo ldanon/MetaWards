@@ -602,13 +602,13 @@ void RescalePlayMatrix(network *net,	parameters *par){
 	to_link *llist=net->play;
 	node *nlist=net->nodes;
 
-	for(j=1;j<=net->plinks;j++){ //rescale appropriately!
+	if(par->StaticPlayAtHome>0.0){ //if we are making people stay at home, then do this loop through nodes
+	  for(j=1;j<=net->plinks;j++){ //rescale appropriately!
 
-		if(par->StaticPlayAtHome>0.0){
-			if(llist[j].ifrom!=llist[j].ito){
-				llist[j].weight=llist[j].suscept*(1-par->StaticPlayAtHome);
+			if(llist[j].ifrom!=llist[j].ito){ // if it's not the home ward, then reduce the number of play movers
+				llist[j].weight=llist[j].suscept*(1-par->StaticPlayAtHome); // 
 			}
-			else{
+			else{  // if it is the home ward 
 				llist[j].weight=(1-llist[j].suscept)*(par->StaticPlayAtHome)+llist[j].suscept;
 			}
 		}
