@@ -156,3 +156,17 @@ Ward2WardAll %>%
 
 
 ```
+
+# CCG analysis
+
+```{r}
+lsoa2ccg = read.csv('~/GitHub/MetaWards/data/2011/CCG/Lower_Layer_Super_Output_Area_2011_to_Clinical_Commissioning_Group_to_Local_Authority_District_April_2017_Lookup_in_England_Version_4.csv')
+
+lsoa2ccg %>% 
+  group_by(CCG17CD) %>% 
+  count()
+
+
+
+```
+
