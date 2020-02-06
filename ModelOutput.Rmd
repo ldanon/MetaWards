@@ -97,11 +97,7 @@ wardlookup<-read.csv('~/GitHub/MetaWards/data/2011/WardsProcessing/Ward_Lookup.c
 wardCentroids %>% 
   inner_join(.,wardlookup,by=c('wd11cd'='WD11CD'))->wardslookup2 
 
-
-
-
-
-#mapview(wardslookup2,zcol='FID')
+mapview(wardslookup2,zcol='FID')
 
 
 ```

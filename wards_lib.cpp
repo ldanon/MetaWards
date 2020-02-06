@@ -1704,7 +1704,7 @@ void SetInputFileNames(int choice,parameters *par){
 	    strcpy(par->SeedName,"/Users/ld450/GitHub/MetaWards/2011data/seeds.dat");
 	    strcpy(par->NodesToTrack,"/Users/ld450/GitHub/MetaWards/2011data/seeds.dat");
 	  
-	    strcpy(par->AdditionalSeeding,"/Users/ld450/GitHub/MetaWards/2011data/ExtraSeeds.dat");
+	    strcpy(par->AdditionalSeeding,"/Users/ld450/GitHub/MetaWards/2011data/ExtraSeedsLondon.dat");
 	  return;
 	  break;
 	  
