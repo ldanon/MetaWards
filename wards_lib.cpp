@@ -602,13 +602,13 @@ void RescalePlayMatrix(network *net,	parameters *par){
 	to_link *llist=net->play;
 	node *nlist=net->nodes;
 
-	for(j=1;j<=net->plinks;j++){ //rescale appropriately!
+	if(par->StaticPlayAtHome>0.0){ //if we are making people stay at home, then do this loop through nodes
+	  for(j=1;j<=net->plinks;j++){ //rescale appropriately!
 
-		if(par->StaticPlayAtHome>0.0){
-			if(llist[j].ifrom!=llist[j].ito){
-				llist[j].weight=llist[j].suscept*(1-par->StaticPlayAtHome);
+			if(llist[j].ifrom!=llist[j].ito){ // if it's not the home ward, then reduce the number of play movers
+				llist[j].weight=llist[j].suscept*(1-par->StaticPlayAtHome); // 
 			}
-			else{
+			else{  // if it is the home ward 
 				llist[j].weight=(1-llist[j].suscept)*(par->StaticPlayAtHome)+llist[j].suscept;
 			}
 		}
@@ -1544,10 +1544,10 @@ parameters *InitialiseParameters(){
 #endif
 	
 #ifdef NCOV
-	double beta[N_INF_CLASSES]={		0, 0.6, 1.07, 0};
-	double Progress[N_INF_CLASSES]={	1, 1.0/5.0, 1.0/6.0, 0};
-	double TooIllToMove[N_INF_CLASSES]={    0, 0, 0.8, 1};
- 	double ContribFOI[N_INF_CLASSES]={	1, 1,   1,   0}; // set to 1 for the time being;
+	double beta[N_INF_CLASSES]={	0, 0, 0.8, 0.8, 0};
+	double Progress[N_INF_CLASSES]={	1, 1.0/4.1, 1.0/1.1, 1/1.1, 0};
+	double TooIllToMove[N_INF_CLASSES]={ 0, 0, 0, 0.8, 0};
+ 	double ContribFOI[N_INF_CLASSES]={1, 1, 1, 1, 0}; // set to 1 for the time being;
 #endif
 	
 	int i;

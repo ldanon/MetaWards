@@ -28,19 +28,23 @@ wardcurves %>%
 
 
 ```{r}
-read.csv(file='TotalInfections.dat') %>% 
-  mutate(Time=row_number())->epicurve
+read.csv(file='London/TotalInfections.dat') %>% 
+  transmute(Time=row_number(),L1=X0)->epicurveL
 
-epicurve %>% 
-  ggplot(aes(x=Time,y=X0))+
+which.max(epicurveL$L1)
+
+read.csv(file='London2/TotalInfections.dat') %>% 
+  transmute(Time=row_number(),L2=X0)->epicurveL2
+
+which.max(epicurveL2$L2)
+
+epicurveL %>% 
+  full_join(.,epicurveL2,by='Time') %>% 
+  pivot_longer(-Time) %>% 
+  ggplot(aes(x=Time,y=value,colour=name))+
   geom_line()
 
-epicurve %>% 
-  ggplot(aes(x=Time,y=X0))+
-  geom_line()
-
-
-
+p+p2
 ```
 
 
@@ -58,7 +62,9 @@ read.csv(file='PlayInfections.dat',sep=' ') %>%
 workinf %>% 
   pivot_longer(-Time,names_to = 'Classes',values_to = 'NumberInfected')%>% 
   ggplot(aes(x=Time,y=NumberInfected,colour=Classes))+
-  geom_line()
+  geom_line()+
+  ylab('Number of cases')+
+  scale_y_log10()
 
 
 ```
@@ -88,46 +94,25 @@ wardCentroids %>%
 
 
 
-mapview(wardslookup2,zcol='FID')
+#mapview(wardslookup2,zcol='FID')
 
 
 ```
 
 
-
 ```{r}
 
+allinfectionsShef=read.table(file='ForMattData.dat',sep = ' ')
 
-allinfection %>% 
-  
-
-
-day200=t(as.matrix(allinfections[200,]))
-day336=t(as.matrix(allinfections[336,]))
-plot(day336-day200)
-plot(day336)
-
-ec1=rowSums(allinfections,na.rm=T)
-which.max(ec1)
-plot(ec1)
-
-length(rowSums(allinfections,na.rm=T))
-```
-
-
-```{r}
-
-allinfections=read.table(file='ForMattData.dat',sep = ' ')
-
-allinfections %>% # make long data frame
+allinfectionsShef %>% # make long data frame
   mutate(Time=row_number()) %>% # count up time, as row number
   pivot_longer(-Time) %>% 
   mutate(Ward=as.integer(str_remove(name,'V'))) %>% 
-  select(-name)->inf_long # rename name to Ward integers for easier matching
+  select(-name)->inf_longShef # rename name to Ward integers for easier matching
 
 
 
-inf_long %>% 
+inf_longShef %>% 
   group_by(Ward) %>%               # by ward
   filter(cumsum(value) < 1) %>%    # cumulative sum > 1 means it's just arrived/first infection
   mutate(Arrival=max(Time)) %>%    # find the maximum before that
@@ -135,17 +120,47 @@ inf_long %>%
   select(Ward,Arrival) %>%    # # select columns and rename and save in a data frame
   ungroup() -> arrivals
       
-      
+wardslookup2 %>% inner_join(.,arrivals, by=c('FID'='Ward')) %>% 
+  mutate(AltArrival=log(1/Arrival)*100)->wardslookuparrivalShef
+
+mapview(wardslookuparrivalShef,zcol='AltArrival',cex = 'AltArrival')
+
 
 # plotme %>% 
 #   ggplot(aes(x=Time,y=value,colour=name))+
 #   geom_line()
 
 ```
+
 ```{r}
-wardslookup2 %>% inner_join(.,arrivals, by=c('FID'='Ward'))->wardslookuparrival
 
-mapview(wardslookuparrival,zcol='Arrival',cex = 'Arrival')
+allinfectionsLon=read.table(file='London/ForMattData.dat',sep = ' ')
 
+allinfectionsLon %>% # make long data frame
+  mutate(Time=row_number()) %>% # count up time, as row number
+  pivot_longer(-Time) %>% 
+  mutate(Ward=as.integer(str_remove(name,'V'))) %>% 
+  select(-name)->inf_longLon # rename name to Ward integers for easier matching
+
+
+
+inf_longLon %>% 
+  group_by(Ward) %>%               # by ward
+  filter(cumsum(value) < 1) %>%    # cumulative sum > 1 means it's just arrived/first infection
+  mutate(Arrival=max(Time)) %>%    # find the maximum before that
+  filter(row_number()==1) %>%      # take the first row of group_by
+  select(Ward,Arrival) %>%    # # select columns and rename and save in a data frame
+  ungroup() -> arrivalsLon
+      
+wardslookup2 %>% inner_join(.,arrivalsLon, by=c('FID'='Ward')) %>% 
+  mutate(AltArrival=log(1/Arrival)*100)->wardslookuparrivalLon
+
+mapview(wardslookuparrivalLon,zcol='AltArrival',cex = 'AltArrival')
+
+
+# TODO:
+# Time to peak. 
+# Time to 10 cases.
+# Lookup from Postcode to Ward/OA.
 ```
 

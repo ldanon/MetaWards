@@ -28,13 +28,53 @@ int main(int argc, char *argv[]){
 
 	double beta[N_INF_CLASSES];
 	double scaling;
-  printf("OK\n");
 	
 	gsl_rng *r; // random number generator stuff;
 	
-	r = gsl_rng_alloc (gsl_rng_default);
 	
+	printf("Input 1: random seed %d\n\n",atoi(argv[1]));
+	
+	r = gsl_rng_alloc (gsl_rng_default);
 	gsl_rng_set (r, -1*(int)time(NULL) + atoi(argv[1]));
+	
+	
+	
+  printf("Input 2: parameter file name to be read %s\n",argv[2]);
+	
+	
+	FILE *file = fopen(argv[2], "r"); //open file
+
+	
+	int linenumber;
+	double b1,b2,s1,s2,s3;
+	linenumber =atoi(argv[3]);
+	printf("Input 3: line of parameter file to read %d\n\n",linenumber);
+
+	i = 0;
+	if ( file != NULL ) // if file is there do loop
+	{
+	  char line[256]; /* or other suitable maximum line size */
+	  while (fgets(line, sizeof line, file) != NULL) /* read a line */
+	  {
+	    if (i == linenumber)
+	    {
+  	    sscanf(line,"%lf,%lf,%lf,%lf,%lf\n",&b1,&b2,&s1,&s2,&s3);
+  	    printf("line number %d\n\n\n\n\n\n",i);
+  	    //use line or in a function return it
+	      //in case of a return first close the file with "fclose(file);"
+	    }
+	      i++;
+	  }
+	  fclose(file);
+	}
+	else
+	{
+	  printf("ERROR: File %s not found\n",argv[2]);//file doesn't exist
+	}
+	
+	printf("Parameters used: b1: %lf b2:  %lf s1:  %lf s2:  %lf s3:  %lf\n",b1,b2,s1,s2,s3);
+	  
+	
 	
 	
 	max=(double *)malloc(sizeof(double));
@@ -61,13 +101,12 @@ int main(int argc, char *argv[]){
 		
 	inf=InitialiseInfections(net);
 	playinf=InitialisePlayInfections(net);
-	
   
 	GetMinMaxDistances(net,min,max);
 
 	par->DynDistCutoff=*max+1;
 
-	for(i=0;i<N_INF_CLASSES;i++)beta[i]=par->beta[i];
+//	for(i=0;i<N_INF_CLASSES;i++)beta[i]=par->beta[i];
 //	for(i=0;i<N_INF_CLASSES;i++)par->beta[i]=beta[i]*(1.4/1.9);
 	
 	s=-1;
