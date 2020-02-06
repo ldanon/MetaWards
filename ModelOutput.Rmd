@@ -1,0 +1,151 @@
+---
+title: "Plotting Model Output"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(gghighlight)
+```
+# Number of Infected Wards
+
+```{r}
+
+read.csv(file='NumberWardsInfected.dat',sep=' ') %>% 
+  mutate(Time=X0) %>% 
+  select(-X,-X0,-X0.4) ->wardcurves
+
+
+wardcurves %>% 
+  pivot_longer(-Time,names_to = 'Classes',values_to = 'NumberWards')%>% 
+  ggplot(aes(x=Time,y=NumberWards,colour=Classes))+
+  geom_line()
+```
+
+
+
+
+
+
+```{r}
+read.csv(file='TotalInfections.dat') %>% 
+  mutate(Time=row_number())->epicurve
+
+epicurve %>% 
+  ggplot(aes(x=Time,y=X0))+
+  geom_line()
+
+epicurve %>% 
+  ggplot(aes(x=Time,y=X0))+
+  geom_line()
+
+
+
+```
+
+
+# Epi curves per class
+
+```{r}
+
+read.csv(file='WorkInfections.dat',sep=' ') %>% 
+  select(Time=X0,X0.1,X0.2,X0.3)->workinf
+
+read.csv(file='PlayInfections.dat',sep=' ') %>% 
+  select(Time=X0,X0.1,X0.2,X0.3)->playinf
+
+
+workinf %>% 
+  pivot_longer(-Time,names_to = 'Classes',values_to = 'NumberInfected')%>% 
+  ggplot(aes(x=Time,y=NumberInfected,colour=Classes))+
+  geom_line()
+
+
+```
+
+
+# Spatial Analysis
+
+```{r}
+
+
+library(tidyverse)
+library(sf)
+library(rgdal)
+library(viridis)
+library(mapview)
+
+WardsEW <- read_sf(dsn='~/GitHub/MetaWards/data/2011/shapefile/Wards_December_2011_Boundaries_EW_BFC',layer = 'Wards_December_2011_Boundaries_EW_BFC')
+
+st_centroid(WardsEW)->wardCentroids
+
+wardlookup<-read.csv('~/GitHub/MetaWards/data/2011/WardsProcessing/Ward_Lookup.csv') 
+
+wardCentroids %>% 
+  inner_join(.,wardlookup,by=c('wd11cd'='WD11CD'))->wardslookup2 
+
+
+
+
+
+mapview(wardslookup2,zcol='FID')
+
+
+```
+
+
+
+```{r}
+
+
+allinfection %>% 
+  
+
+
+day200=t(as.matrix(allinfections[200,]))
+day336=t(as.matrix(allinfections[336,]))
+plot(day336-day200)
+plot(day336)
+
+ec1=rowSums(allinfections,na.rm=T)
+which.max(ec1)
+plot(ec1)
+
+length(rowSums(allinfections,na.rm=T))
+```
+
+
+```{r}
+
+allinfections=read.table(file='ForMattData.dat',sep = ' ')
+
+allinfections %>% # make long data frame
+  mutate(Time=row_number()) %>% # count up time, as row number
+  pivot_longer(-Time) %>% 
+  mutate(Ward=as.integer(str_remove(name,'V'))) %>% 
+  select(-name)->inf_long # rename name to Ward integers for easier matching
+
+
+
+inf_long %>% 
+  group_by(Ward) %>%               # by ward
+  filter(cumsum(value) < 1) %>%    # cumulative sum > 1 means it's just arrived/first infection
+  mutate(Arrival=max(Time)) %>%    # find the maximum before that
+  filter(row_number()==1) %>%      # take the first row of group_by
+  select(Ward,Arrival) %>%    # # select columns and rename and save in a data frame
+  ungroup() -> arrivals
+      
+      
+
+# plotme %>% 
+#   ggplot(aes(x=Time,y=value,colour=name))+
+#   geom_line()
+
+```
+```{r}
+wardslookup2 %>% inner_join(.,arrivals, by=c('FID'='Ward'))->wardslookuparrival
+
+mapview(wardslookuparrival,zcol='Arrival',cex = 'Arrival')
+
+```
+

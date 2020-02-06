@@ -1,11 +1,13 @@
 #ifndef _GLOBALS_H
 #define _GLOBALS_H
 
-#define FLU
+//#define FLU
 //#define FLU2
 //#define POX
 //define DEFAULT
 //#define VACCINATE
+#define NCOV
+
 
 //#define SELFISOLATE
 
@@ -35,6 +37,11 @@
 #ifdef DEFAULT 
 	#define N_INF_CLASSES 3
 	#define START_SYMPTOM 1
+#endif
+
+#ifdef NCOV
+  #define N_INF_CLASSES 4
+  #define START_SYMPTOM 3
 #endif
 
 
