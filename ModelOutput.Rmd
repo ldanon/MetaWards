@@ -38,13 +38,20 @@ read.csv(file='London2/TotalInfections.dat') %>%
 
 which.max(epicurveL2$L2)
 
+read.csv(file='Testing/TotalInfections.dat') %>% 
+  transmute(Time=row_number(),LShorter=X0)->epicurveShorter
+
+which.max(epicurveShorter$LShorter)
+
+
 epicurveL %>% 
   full_join(.,epicurveL2,by='Time') %>% 
+  full_join(.,epicurveShorter,by='Time') %>% 
   pivot_longer(-Time) %>% 
   ggplot(aes(x=Time,y=value,colour=name))+
   geom_line()
 
-p+p2
+
 ```
 
 

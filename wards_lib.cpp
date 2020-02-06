@@ -1584,6 +1584,54 @@ parameters *InitialiseParameters(){
 	return par;
 }
 
+
+
+void ReadParametersFile(parameters *par, char *fname,int lineno){
+  
+  FILE *file = fopen(fname, "r"); //open file
+  
+  
+  int linenumber,i;
+  double b2,b3,s2,s3,s4;
+  linenumber =lineno;
+  printf("Input 3: line of parameter file to read %d\n\n",linenumber);
+  
+  i = 0;
+  if ( file != NULL ) // if file is there do loop
+  {
+    char line[256]; /* or other suitable maximum line size */
+    while (fgets(line, sizeof line, file) != NULL) /* read a line */
+    {
+      if (i == linenumber)
+      {
+        sscanf(line,"%lf,%lf,%lf,%lf,%lf\n",&b2,&b3,&s2,&s3,&s4);
+        printf("line number %d\n\n\n\n\n\n",i);
+        //use line or in a function return it
+        //in case of a return first close the file with "fclose(file);"
+      }
+      i++;
+    }
+    fclose(file);
+  }
+  else
+  {
+    printf("ERROR: File %s not found\n",fname);//file doesn't exist
+  }
+  
+  //printf("Parameters used: b2: %lf b3:  %lf s2:  %lf s3:  %lf s4:  %lf\n",b2,b3,s2,s3,s4);
+  
+  par->beta[2]=b2;
+  par->beta[3]=b3;
+  par->Progress[2]=s2;  
+  par->Progress[3]=s3;
+  par->Progress[4]=s4;  
+  
+  //  printf("Checking Parameters used: b2: %lf b3:  %lf s2:  %lf s3:  %lf s4:  %lf\n",par->beta[2],b3,s2,s3,s4);
+  
+  return;
+  
+}
+
 void SetInputFileNames(int choice,parameters *par){
 	switch(choice){
 		case 1:

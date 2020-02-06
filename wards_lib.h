@@ -145,6 +145,8 @@ void ClearAllInfections(network *net, int **inf, int **pinf);
 
 parameters *InitialiseParameters();
 
+void ReadParametersFile(parameters *par, char *fname,int lineno);
+
 void SetInputFileNames(int choice,parameters *par);
 
 void RunModel(network *net, parameters *par, int **inf, int **playinf, gsl_rng *r, int *to_seed, int s);

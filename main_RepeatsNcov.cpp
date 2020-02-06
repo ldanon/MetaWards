@@ -11,8 +11,6 @@
 #include "wards_lib.h"
 #include "globals.h"
 
-
-
 int main(int argc, char *argv[]){
 	network *net;
 	
@@ -41,42 +39,6 @@ int main(int argc, char *argv[]){
 	
   printf("Input 2: parameter file name to be read %s\n",argv[2]);
 	
-	
-	FILE *file = fopen(argv[2], "r"); //open file
-
-	
-	int linenumber;
-	double b1,b2,s1,s2,s3;
-	linenumber =atoi(argv[3]);
-	printf("Input 3: line of parameter file to read %d\n\n",linenumber);
-
-	i = 0;
-	if ( file != NULL ) // if file is there do loop
-	{
-	  char line[256]; /* or other suitable maximum line size */
-	  while (fgets(line, sizeof line, file) != NULL) /* read a line */
-	  {
-	    if (i == linenumber)
-	    {
-  	    sscanf(line,"%lf,%lf,%lf,%lf,%lf\n",&b1,&b2,&s1,&s2,&s3);
-  	    printf("line number %d\n\n\n\n\n\n",i);
-  	    //use line or in a function return it
-	      //in case of a return first close the file with "fclose(file);"
-	    }
-	      i++;
-	  }
-	  fclose(file);
-	}
-	else
-	{
-	  printf("ERROR: File %s not found\n",argv[2]);//file doesn't exist
-	}
-	
-	printf("Parameters used: b1: %lf b2:  %lf s1:  %lf s2:  %lf s3:  %lf\n",b1,b2,s1,s2,s3);
-	  
-	
-	
-	
 	max=(double *)malloc(sizeof(double));
 	min=(double *)malloc(sizeof(double));
 	
@@ -84,6 +46,8 @@ int main(int argc, char *argv[]){
 	to_seed=(int *)calloc(sizeof(int),100);
 
 	par=InitialiseParameters();
+	
+	ReadParametersFile(par,argv[2],atoi(argv[3])); // function to read parameters from file and put into par. 
 	
 	SetInputFileNames(4,par);
 
