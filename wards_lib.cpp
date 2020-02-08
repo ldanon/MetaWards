@@ -1633,6 +1633,8 @@ void ReadParametersFile(parameters *par, char *fname,int lineno){
 }
 
 void SetInputFileNames(int choice,parameters *par){
+  char *filestring;
+  char *dirstring;
 	switch(choice){
 		case 1:
 			printf("Using files in Z:/data/\n"); // for development code WINDOWS
@@ -1692,19 +1694,29 @@ void SetInputFileNames(int choice,parameters *par){
 			return;
 			break;
 	 case 4:
-	    printf("Using files in /Users/ld450/GitHub/MetaWards/2011data/ \n");//for 2011 data 
-	    strcpy(par->WorkName,"/Users/ld450/GitHub/MetaWards/2011data/EW1.dat");
-      strcpy(par->PlayName,"/Users/ld450/GitHub/MetaWards/2011data/PlayMatrix.dat");
-//	    strcpy(par->IdentifierName,"/Users/ld450/GitHub/MetaWards/data/Identifiers.dat");
-//	    strcpy(par->IdentifierName2,"/Users/ld450/GitHub/MetaWards/data/level3.dat");
+      dirstring=getenv("HOME"); // home directory string
+      printf("HOME : %s\n", dirstring); 
+      strcat(dirstring,"/MetaWards/2011Data/"); // add to that the directory 
+      printf("DATADIR : %s\n", dirstring);
+      printf("Using files in %s \n", dirstring);//for 2011 data 
+      
+      strcat(strcpy(par->WorkName, dirstring), "EW1.dat");
+      
+//	    strcpy(par->WorkName,"~/MetaWards/2011data/EW1.dat");
+      strcat(strcpy(par->PlayName, dirstring), "PlayMatrix.dat");
+//strcpy(par->PlayName,"~/MetaWards/2011data/PlayMatrix.dat");
+//	    strcpy(par->IdentifierName,"~/MetaWards/data/Identifiers.dat");
+//	    strcpy(par->IdentifierName2,"~/MetaWards/data/level3.dat");
 	  
-//	    strcpy(par->WeekendName,"/Users/ld450/GitHub/MetaWards/data/WeekendMatrix.dat");
-	    strcpy(par->PlaySizeName,"/Users/ld450/GitHub/MetaWards/2011data/PlaySize.dat");
-	    strcpy(par->PositionName,"/Users/ld450/GitHub/MetaWards/2011data/CBB2011.dat");
-	    strcpy(par->SeedName,"/Users/ld450/GitHub/MetaWards/2011data/seeds.dat");
-	    strcpy(par->NodesToTrack,"/Users/ld450/GitHub/MetaWards/2011data/seeds.dat");
-	  
-	    strcpy(par->AdditionalSeeding,"/Users/ld450/GitHub/MetaWards/2011data/ExtraSeedsLondon.dat");
+//	    strcpy(par->WeekendName,"~/MetaWards/data/WeekendMatrix.dat");
+      strcat(strcpy(par->PlaySizeName, dirstring), "PlaySize.dat");
+//strcpy(par->PlaySizeName,"~/MetaWards/2011data/PlaySize.dat");
+	    strcat(strcpy(par->PositionName,dirstring),"CBB2011.dat");
+      strcat(strcpy(par->SeedName,dirstring),"seeds.dat");
+//	    	    strcpy(par->SeedName,"~/MetaWards/2011data/seeds.dat");
+//	    strcpy(par->NodesToTrack,"~/MetaWards/2011data/seeds.dat");
+      strcat(strcpy(par->NodesToTrack,dirstring),"seeds.dat");
+	    strcat(strcpy(par->AdditionalSeeding,dirstring),"ExtraSeedsLondon.dat");
 	  return;
 	  break;
 	  
