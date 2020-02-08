@@ -1633,87 +1633,91 @@ void ReadParametersFile(parameters *par, char *fname,int lineno){
 }
 
 void SetInputFileNames(int choice,parameters *par){
-	switch(choice){
-		case 1:
-			printf("Using files in Z:/data/\n"); // for development code WINDOWS
-			strcpy(par->WorkName,"Z:/data/UK1.dat");
-//			strcpy(par->WorkName,"Z:\\data\\Gravity_Model.dat");
-//			strcpy(par->PlayName,"Z:/data/Weights_new.dat");
-			strcpy(par->PlayName,par->WorkName);
-			//strcpy(par->PlayName,"C:/data/combined_matrix.dat");
-			strcpy(par->IdentifierName,"Z:/data/Identifiers.dat");
-			strcpy(par->IdentifierName2,"Z:/data/level2.dat");
+  char *filestring;
+  char *dirstring;
+  switch(choice){
+  case 1:
+    printf("Using files in Z:/data/\n"); // for development code WINDOWS
+    strcpy(par->WorkName,"Z:/data/UK1.dat");
+    //			strcpy(par->WorkName,"Z:\\data\\Gravity_Model.dat");
+    //			strcpy(par->PlayName,"Z:/data/Weights_new.dat");
+    strcpy(par->PlayName,par->WorkName);
+    //strcpy(par->PlayName,"C:/data/combined_matrix.dat");
+    strcpy(par->IdentifierName,"Z:/data/Identifiers.dat");
+    strcpy(par->IdentifierName2,"Z:/data/level2.dat");
+    
+    strcpy(par->WeekendName,"Z:/data/WeekendMatrix.dat");
+    strcpy(par->PlaySizeName,"Z:/data/PlaySize.dat");
+    strcpy(par->PositionName,"Z:/data/CBB.dat");
+    strcpy(par->SeedName,"Z:/data/seeds.dat");
+    strcpy(par->NodesToTrack,"Z:/data/seeds.dat");
+    
+    strcpy(par->AdditionalSeeding,"Z:/data/ExtraSeeds.dat");
+    
+    //strcpy(par->NodesToTrack,"Z:/ldanon/data/AllWardInts.dat");
+    return;
+    break;
+  case 2:
+    printf("Using files in /Users/ldanon/data/ \n");//for Macs 
+    strcpy(par->WorkName,"/Users/ldanon/data/UK1.dat");
+    strcpy(par->PlayName,"/Users/ldanon/data/Weights_new.dat");
+    
+    strcpy(par->IdentifierName,"/Users/ldanon/data/Identifiers.dat");
+    strcpy(par->IdentifierName2,"/Users/ldanon/data/level3.dat");
+    
+    strcpy(par->WeekendName,"/Users/ldanon/data/WeekendMatrix.dat");
+    strcpy(par->PlaySizeName,"/Users/ldanon/data/PlaySize.dat");
+    strcpy(par->PositionName,"/Users/ldanon/data/CBB.dat");
+    strcpy(par->SeedName,"/Users/ldanon/data/seeds.dat");
+    strcpy(par->NodesToTrack,"/Users/ldanon/data/seeds.dat");
+    
+    strcpy(par->AdditionalSeeding,"/Users/ldanon/data/ExtraSeeds.dat");
+    return;
+    break;
+  case 3:
+    printf("Using files in /users/leond/data/ \n");//for the cluster
+    
+    strcpy(par->WorkName,"/users/leond/data/UK1.dat");
+    strcpy(par->PlayName,"/users/leond/data/Weights_new.dat");
+    strcpy(par->IdentifierName,"/users/leond/data/Identifiers.dat");
+    strcpy(par->IdentifierName2,"/users/leond/data/level3.dat");
+    
+    strcpy(par->WeekendName,"/users/leond/data/WeekendMatrix.dat");
+    strcpy(par->PlaySizeName,"/users/leond/data/PlaySize.dat");
+    strcpy(par->PositionName,"/users/leond/data/CBB.dat");
+    strcpy(par->SeedName,"/users/leond/data/seeds.dat");
+    strcpy(par->NodesToTrack,"/users/leond/data/seeds.dat");
+    
+    strcpy(par->AdditionalSeeding,"/users/leond/data/ExtraSeeds.dat");
+    
+    
+    return;
+    break;
+  
+  case 4:
 
-			strcpy(par->WeekendName,"Z:/data/WeekendMatrix.dat");
-			strcpy(par->PlaySizeName,"Z:/data/PlaySize.dat");
-			strcpy(par->PositionName,"Z:/data/CBB.dat");
-			strcpy(par->SeedName,"Z:/data/seeds.dat");
-			strcpy(par->NodesToTrack,"Z:/data/seeds.dat");
-
-			strcpy(par->AdditionalSeeding,"Z:/data/ExtraSeeds.dat");
-
-			//strcpy(par->NodesToTrack,"Z:/ldanon/data/AllWardInts.dat");
-			return;
-			break;
-		case 2:
-			printf("Using files in /Users/ldanon/data/ \n");//for Macs 
-			strcpy(par->WorkName,"/Users/ldanon/data/UK1.dat");
-			strcpy(par->PlayName,"/Users/ldanon/data/Weights_new.dat");
-
-			strcpy(par->IdentifierName,"/Users/ldanon/data/Identifiers.dat");
-			strcpy(par->IdentifierName2,"/Users/ldanon/data/level3.dat");
-
-			strcpy(par->WeekendName,"/Users/ldanon/data/WeekendMatrix.dat");
-			strcpy(par->PlaySizeName,"/Users/ldanon/data/PlaySize.dat");
-			strcpy(par->PositionName,"/Users/ldanon/data/CBB.dat");
-			strcpy(par->SeedName,"/Users/ldanon/data/seeds.dat");
-			strcpy(par->NodesToTrack,"/Users/ldanon/data/seeds.dat");
-
-			strcpy(par->AdditionalSeeding,"/Users/ldanon/data/ExtraSeeds.dat");
-			return;
-			break;
-		case 3:
-			printf("Using files in /users/leond/data/ \n");//for the cluster
- 
-			strcpy(par->WorkName,"/users/leond/data/UK1.dat");
-			strcpy(par->PlayName,"/users/leond/data/Weights_new.dat");
-			strcpy(par->IdentifierName,"/users/leond/data/Identifiers.dat");
-			strcpy(par->IdentifierName2,"/users/leond/data/level3.dat");
-
-			strcpy(par->WeekendName,"/users/leond/data/WeekendMatrix.dat");
-			strcpy(par->PlaySizeName,"/users/leond/data/PlaySize.dat");
-			strcpy(par->PositionName,"/users/leond/data/CBB.dat");
-			strcpy(par->SeedName,"/users/leond/data/seeds.dat");
-			strcpy(par->NodesToTrack,"/users/leond/data/seeds.dat");
-
-			strcpy(par->AdditionalSeeding,"/users/leond/data/ExtraSeeds.dat");
-
-
-			return;
-			break;
-	 case 4:
-	    printf("Using files in /Users/ld450/GitHub/MetaWards/2011data/ \n");//for 2011 data 
-	    strcpy(par->WorkName,"/Users/ld450/GitHub/MetaWards/2011data/EW1.dat");
-      strcpy(par->PlayName,"/Users/ld450/GitHub/MetaWards/2011data/PlayMatrix.dat");
-//	    strcpy(par->IdentifierName,"/Users/ld450/GitHub/MetaWards/data/Identifiers.dat");
-//	    strcpy(par->IdentifierName2,"/Users/ld450/GitHub/MetaWards/data/level3.dat");
-	  
-//	    strcpy(par->WeekendName,"/Users/ld450/GitHub/MetaWards/data/WeekendMatrix.dat");
-	    strcpy(par->PlaySizeName,"/Users/ld450/GitHub/MetaWards/2011data/PlaySize.dat");
-	    strcpy(par->PositionName,"/Users/ld450/GitHub/MetaWards/2011data/CBB2011.dat");
-	    strcpy(par->SeedName,"/Users/ld450/GitHub/MetaWards/2011data/seeds.dat");
-	    strcpy(par->NodesToTrack,"/Users/ld450/GitHub/MetaWards/2011data/seeds.dat");
-	  
-	    strcpy(par->AdditionalSeeding,"/Users/ld450/GitHub/MetaWards/2011data/ExtraSeedsLondon.dat");
+    dirstring=getenv("HOME"); // home directory string
+    printf("HOME : %s\n", dirstring); 
+    strcat(dirstring,"/MetaWards/2011Data/"); // add to that the directory 
+    printf("DATADIR : %s\n", dirstring);
+    printf("Using files in %s \n", dirstring);//for 2011 data 
+    
+    strcat(strcpy(par->WorkName, dirstring), "EW1.dat");
+    strcat(strcpy(par->PlayName, dirstring), "PlayMatrix.dat");
+    strcat(strcpy(par->PlaySizeName, dirstring), "PlaySize.dat");
+    strcat(strcpy(par->PositionName,dirstring),"CBB2011.dat");
+    strcat(strcpy(par->SeedName,dirstring),"seeds.dat");
+    strcat(strcpy(par->NodesToTrack,dirstring),"seeds.dat");
+    strcat(strcpy(par->AdditionalSeeding,dirstring),"ExtraSeedsLondon.dat");
 	  return;
 	  break;
 	  
-		default:
-			printf("WRONG WRONG WRONG\n");
-			return;
-			break;
-	}
-	
+  default:
+    printf("WRONG WRONG WRONG\n");
+  return;
+  break;
+  }
+  
 }
 
 
