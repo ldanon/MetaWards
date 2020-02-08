@@ -6,7 +6,63 @@ output: html_notebook
 ```{r}
 library(tidyverse)
 library(gghighlight)
+library(purrr)
 ```
+
+
+# Read in model output files
+
+
+```{r}
+
+#locations=c('London','Sheffield','Birmingham','Cardiff')
+
+pathname='Locations'
+dir(pathname,pattern='TotalInfections.dat',recursive=TRUE)->infectionfiles
+
+readinfections<-function (fname,fpath){
+#  print(fname)
+  d<-read_csv(file.path(fpath,fname),col_names=FALSE,cols(X1=col_integer())) %>% 
+    mutate(Time=row_number()) %>% 
+    select(Time,Infecteds=X1)
+   return(d)
+}
+  
+data <- tibble(filename = infectionfiles) %>% # create a data frame
+                                                  # holding the file names
+  mutate(file_contents = map(filename,            # read files into a new data column
+                             ~readinfections(., pathname))) %>% 
+  mutate(Location=str_split(filename,'/',simplify = TRUE)[,1]) %>% 
+  mutate(Run=str_split(filename,'/',simplify = TRUE)[,2]) %>% 
+  select(-filename) %>% 
+  unnest(cols=file_contents)
+  
+
+```
+
+
+
+```{r}
+library(cowplot)
+library(scales)
+data %>%
+  mutate(Infected=Infecteds/10^6) %>% 
+  filter(Time<180) %>% 
+  ggplot(aes(x=Time,y=Infected,colour=Location))+
+  geom_line()+
+  gghighlight()+
+  facet_wrap(~Location)+
+  theme_minimal_grid()+
+  theme(strip.text.x = element_blank())+
+  scale_y_continuous(labels = unit_format(unit = "M"))+
+  xlab('Time (days)')
+
+
+```
+
+
+
+
 # Number of Infected Wards
 
 ```{r}
@@ -28,6 +84,8 @@ wardcurves %>%
 
 
 ```{r}
+
+
 read.csv(file='London/TotalInfections.dat') %>% 
   transmute(Time=row_number(),L1=X0)->epicurveL
 
@@ -74,96 +132,5 @@ workinf %>%
   scale_y_log10()
 
 
-```
-
-
-# Spatial Analysis
-
-```{r}
-
-
-library(tidyverse)
-library(sf)
-library(rgdal)
-library(viridis)
-library(mapview)
-
-WardsEW <- read_sf(dsn='~/GitHub/MetaWards/data/2011/shapefile/Wards_December_2011_Boundaries_EW_BFC',layer = 'Wards_December_2011_Boundaries_EW_BFC')
-
-st_centroid(WardsEW)->wardCentroids
-
-wardlookup<-read.csv('~/GitHub/MetaWards/data/2011/WardsProcessing/Ward_Lookup.csv') 
-
-wardCentroids %>% 
-  inner_join(.,wardlookup,by=c('wd11cd'='WD11CD'))->wardslookup2 
-
-mapview(wardslookup2,zcol='FID')
-
-
-```
-
-
-```{r}
-
-allinfectionsShef=read.table(file='ForMattData.dat',sep = ' ')
-
-allinfectionsShef %>% # make long data frame
-  mutate(Time=row_number()) %>% # count up time, as row number
-  pivot_longer(-Time) %>% 
-  mutate(Ward=as.integer(str_remove(name,'V'))) %>% 
-  select(-name)->inf_longShef # rename name to Ward integers for easier matching
-
-
-
-inf_longShef %>% 
-  group_by(Ward) %>%               # by ward
-  filter(cumsum(value) < 1) %>%    # cumulative sum > 1 means it's just arrived/first infection
-  mutate(Arrival=max(Time)) %>%    # find the maximum before that
-  filter(row_number()==1) %>%      # take the first row of group_by
-  select(Ward,Arrival) %>%    # # select columns and rename and save in a data frame
-  ungroup() -> arrivals
-      
-wardslookup2 %>% inner_join(.,arrivals, by=c('FID'='Ward')) %>% 
-  mutate(AltArrival=log(1/Arrival)*100)->wardslookuparrivalShef
-
-mapview(wardslookuparrivalShef,zcol='AltArrival',cex = 'AltArrival')
-
-
-# plotme %>% 
-#   ggplot(aes(x=Time,y=value,colour=name))+
-#   geom_line()
-
-```
-
-```{r}
-
-allinfectionsLon=read.table(file='London/ForMattData.dat',sep = ' ')
-
-allinfectionsLon %>% # make long data frame
-  mutate(Time=row_number()) %>% # count up time, as row number
-  pivot_longer(-Time) %>% 
-  mutate(Ward=as.integer(str_remove(name,'V'))) %>% 
-  select(-name)->inf_longLon # rename name to Ward integers for easier matching
-
-
-
-inf_longLon %>% 
-  group_by(Ward) %>%               # by ward
-  filter(cumsum(value) < 1) %>%    # cumulative sum > 1 means it's just arrived/first infection
-  mutate(Arrival=max(Time)) %>%    # find the maximum before that
-  filter(row_number()==1) %>%      # take the first row of group_by
-  select(Ward,Arrival) %>%    # # select columns and rename and save in a data frame
-  ungroup() -> arrivalsLon
-      
-wardslookup2 %>% inner_join(.,arrivalsLon, by=c('FID'='Ward')) %>% 
-  mutate(AltArrival=log(1/Arrival)*100)->wardslookuparrivalLon
-
-mapview(wardslookuparrivalLon,zcol='AltArrival',cex = 'AltArrival')
-
-
-# TODO:
-# Time to peak. 
-# Time to 10 cases.
-# Lookup from Postcode to Ward/OA.
 ```
 
