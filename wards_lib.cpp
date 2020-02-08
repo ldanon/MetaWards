@@ -1696,11 +1696,9 @@ void SetInputFileNames(int choice,parameters *par){
   
   case 4:
 
-    dirstring=getenv("HOME"); // home directory string
-    printf("HOME : %s\n", dirstring); 
-    strcat(dirstring,"/MetaWards/2011Data/"); // add to that the directory 
-    printf("DATADIR : %s\n", dirstring);
-    printf("Using files in %s \n", dirstring);//for 2011 data 
+    dirstring=getenv("HOME"); // home directory strin
+    strcat(dirstring,"/MetaWards/2011Data/"); // add to that the directory for 2011 data
+    printf("Using files in %s \n", dirstring); //
     
     strcat(strcpy(par->WorkName, dirstring), "EW1.dat");
     strcat(strcpy(par->PlayName, dirstring), "PlayMatrix.dat");
