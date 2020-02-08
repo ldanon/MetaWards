@@ -1697,7 +1697,7 @@ void SetInputFileNames(int choice,parameters *par){
   case 4:
 
     dirstring=getenv("HOME"); // home directory strin
-    strcat(dirstring,"/MetaWards/2011Data/"); // add to that the directory for 2011 data
+    strcat(dirstring,"/GitHub/MetaWards/2011Data/"); // add to that the directory for 2011 data
     printf("Using files in %s \n", dirstring); //
     
     strcat(strcpy(par->WorkName, dirstring), "EW1.dat");
