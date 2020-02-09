@@ -1626,7 +1626,8 @@ void ReadParametersFile(parameters *par, char *fname,int lineno){
   par->Progress[2]=s3;
   par->Progress[3]=s4;  
   
-  //  printf("Checking Parameters used: b2: %lf b3:  %lf s2:  %lf s3:  %lf s4:  %lf\n",par->beta[2],b3,s2,s3,s4);
+//    printf("Parameters used: b0: %lf b1:  %lf b2:  %lf b3:  %lf b4:  %lf\n",par->beta[0],par->beta[1],par->beta[2],par->beta[3],par->beta[4]);
+//    printf("prog0: %lf prog1:  %lf prog2:  %lf prog3:  %lf prog4:  %lf\n",par->Progress[0],par->Progress[1],par->Progress[2],par->Progress[3],par->Progress[4]);
   
   return;
   
@@ -1706,7 +1707,7 @@ void SetInputFileNames(int choice,parameters *par){
     strcat(strcpy(par->PositionName,dirstring),"CBB2011.dat");
     strcat(strcpy(par->SeedName,dirstring),"seeds.dat");
     strcat(strcpy(par->NodesToTrack,dirstring),"seeds.dat");
-    strcat(strcpy(par->AdditionalSeeding,dirstring),"ExtraSeedsLondon.dat");
+    strcat(strcpy(par->AdditionalSeeding,dirstring),"ExtraSeedsBirmingham.dat");
 	  return;
 	  break;
 	  
