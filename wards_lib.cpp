@@ -1622,9 +1622,9 @@ void ReadParametersFile(parameters *par, char *fname,int lineno){
   
   par->beta[2]=b2;
   par->beta[3]=b3;
-  par->Progress[2]=s2;  
-  par->Progress[3]=s3;
-  par->Progress[4]=s4;  
+  par->Progress[1]=s2;  
+  par->Progress[2]=s3;
+  par->Progress[3]=s4;  
   
   //  printf("Checking Parameters used: b2: %lf b3:  %lf s2:  %lf s3:  %lf s4:  %lf\n",par->beta[2],b3,s2,s3,s4);
   
