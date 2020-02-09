@@ -1,0 +1,100 @@
+---
+title: "OutpuMaps"
+author: "Leon Danon"
+date: "07/02/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Spatial Analysis
+
+```{r}
+
+library(tidyverse)
+library(sf)
+library(rgdal)
+library(viridis)
+library(mapview)
+
+WardsEW <- read_sf(dsn='~/GitHub/MetaWards/data/2011/shapefile/Wards_December_2011_Boundaries_EW_BFC',layer = 'Wards_December_2011_Boundaries_EW_BFC')
+
+st_centroid(WardsEW)->wardCentroids
+
+wardlookup<-read.csv('~/GitHub/MetaWards/data/2011/WardsProcessing/Ward_Lookup.csv') 
+
+wardCentroids %>% 
+  inner_join(.,wardlookup,by=c('wd11cd'='WD11CD'))->wardslookup2 
+
+mapview(wardslookup2,zcol='FID')
+
+
+```
+
+
+```{r}
+
+allinfectionsShef=read.table(file='ForMattData.dat',sep = ' ')
+
+allinfectionsShef %>% # make long data frame
+  mutate(Time=row_number()) %>% # count up time, as row number
+  pivot_longer(-Time) %>% 
+  mutate(Ward=as.integer(str_remove(name,'V'))) %>% 
+  select(-name)->inf_longShef # rename name to Ward integers for easier matching
+
+
+
+inf_longShef %>% 
+  group_by(Ward) %>%               # by ward
+  filter(cumsum(value) < 1) %>%    # cumulative sum > 1 means it's just arrived/first infection
+  mutate(Arrival=max(Time)) %>%    # find the maximum before that
+  filter(row_number()==1) %>%      # take the first row of group_by
+  select(Ward,Arrival) %>%    # # select columns and rename and save in a data frame
+  ungroup() -> arrivals
+      
+wardslookup2 %>% inner_join(.,arrivals, by=c('FID'='Ward')) %>% 
+  mutate(AltArrival=log(1/Arrival)*100)->wardslookuparrivalShef
+
+mapview(wardslookuparrivalShef,zcol='AltArrival',cex = 'AltArrival')
+
+
+# plotme %>% 
+#   ggplot(aes(x=Time,y=value,colour=name))+
+#   geom_line()
+
+```
+
+```{r}
+
+allinfectionsLon=read.table(file='London/ForMattData.dat',sep = ' ')
+
+allinfectionsLon %>% # make long data frame
+  mutate(Time=row_number()) %>% # count up time, as row number
+  pivot_longer(-Time) %>% 
+  mutate(Ward=as.integer(str_remove(name,'V'))) %>% 
+  select(-name)->inf_longLon # rename name to Ward integers for easier matching
+
+
+
+inf_longLon %>% 
+  group_by(Ward) %>%               # by ward
+  filter(cumsum(value) < 1) %>%    # cumulative sum > 1 means it's just arrived/first infection
+  mutate(Arrival=max(Time)) %>%    # find the maximum before that
+  filter(row_number()==1) %>%      # take the first row of group_by
+  select(Ward,Arrival) %>%    # # select columns and rename and save in a data frame
+  ungroup() -> arrivalsLon
+      
+wardslookup2 %>% inner_join(.,arrivalsLon, by=c('FID'='Ward')) %>% 
+  mutate(AltArrival=log(1/Arrival)*100)->wardslookuparrivalLon
+
+mapview(wardslookuparrivalLon,zcol='AltArrival',cex = 'AltArrival')
+
+
+# TODO:
+# Time to peak. 
+# Time to 10 cases.
+# Lookup from Postcode to Ward/OA.
+```
+
