@@ -46,18 +46,30 @@ data <- tibble(filename = infectionfiles) %>% # create a data frame
 ```{r}
 library(cowplot)
 library(scales)
+
+
+
 data %>%
   mutate(Infected=Infecteds/10^6) %>% 
-  filter(Time<180) %>% 
+  filter(Time<250) %>% 
   ggplot(aes(x=Time,y=Infected,colour=Run))+
   geom_line()+
-  gghighlight()+
+  gghighlight(Run==0)+
 #  facet_wrap(~Location)+
   theme_minimal_grid()+
   theme(strip.text.x = element_blank())+
   scale_y_continuous(labels = unit_format(unit = "M"))+
   xlab('Time (days)')
 
+
+data %>% 
+  group_by(Run) %>% 
+  summarise(TimeToPeak=which.max(Infecteds)) %>% summary()
+
+
+
+  ggplot(aes(x=TimeToPeak))+
+  geom_histogram()
 
 ```
 
