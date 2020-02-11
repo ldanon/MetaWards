@@ -7,6 +7,10 @@ output: html_notebook
 library(tidyverse)
 library(gghighlight)
 library(purrr)
+library(plotly)
+library(cowplot)
+library(scales)
+
 ```
 
 
@@ -15,65 +19,52 @@ library(purrr)
 
 ```{r}
 
-#locations=c('London','Sheffield','Birmingham','Cardiff')
-
+# this bit of code is now obsolete. 
 #pathname='Locations'
-pathname = 'Testing'
-dir(pathname,pattern='TotalInfections.dat',recursive=TRUE)->infectionfiles
+#dir(pathname,pattern='TotalInfections.dat',recursive=TRUE)->infectionfiles
 
-readinfections<-function (fname,fpath){        
-#  Function to read in TotalInfections.dat' type files (one column only of infecteds, Time is row number)
-  d<-read_csv(file.path(fpath,fname),col_names=FALSE,cols(X1=col_integer())) %>% # 
-    mutate(Time=row_number()) %>% 
-    select(Time,Infecteds=X1)
-   return(d)
-}
+# readinfections<-function (fname,fpath){        
+# #  Function to read in TotalInfections.dat' type files (one column only of infecteds, Time is row number)
+#   d<-read_csv(file.path(fpath,fname),col_names=FALSE,cols(X1=col_integer())) %>% # 
+#     mutate(Time=row_number()) %>% 
+#     select(Time,Infecteds=X1)
+#    return(d)
+# }
   
-data <- tibble(filename = infectionfiles) %>% # create a data frame
+# data <- tibble(filename = infectionfiles) %>% # create a data frame
                                                   # holding the file names
-  mutate(file_contents = map(filename,            # read files into a new data column
-                             ~readinfections(., pathname))) %>% # use the function written above to process files
-  mutate(Location=str_split(filename,'/',simplify = TRUE)[,1]) %>% 
-  mutate(Run=str_split(filename,'/',simplify = TRUE)[,2]) %>% 
-  select(-filename) %>% 
-  unnest(cols=file_contents)
+  # mutate(file_contents = map(filename,            # read files into a new data column
+  #                            ~readinfections(., pathname))) %>% # use the function written above to process files
+  # mutate(Location=str_split(filename,'/',simplify = TRUE)[,1]) %>% 
+  # mutate(Run=str_split(filename,'/',simplify = TRUE)[,2]) %>% 
+  # select(-filename) %>% 
+  # unnest(cols=file_contents)
   
 
-```
 
-
-
-```{r}
-library(cowplot)
-library(scales)
-
-
-
-data %>%
-  mutate(Infected=Infecteds/10^6) %>% 
-  filter(Time<250) %>% 
-  ggplot(aes(x=Time,y=Infected,colour=Run))+
-  geom_line()+
-  gghighlight(Run==0)+
-#  facet_wrap(~Location)+
-  theme_minimal_grid()+
-  theme(strip.text.x = element_blank())+
-  scale_y_continuous(labels = unit_format(unit = "M"))+
-  xlab('Time (days)')
-
-
-data %>% 
-  group_by(Run) %>% 
-  summarise(TimeToPeak=which.max(Infecteds)) %>% summary()
-
-
-
-  ggplot(aes(x=TimeToPeak))+
-  geom_histogram()
+# data %>%
+#   mutate(Infected=Infecteds/10^6) %>% 
+#   filter(Time<250) %>% 
+#   ggplot(aes(x=Time,y=Infected,colour=Run))+
+#   geom_line()+
+#   gghighlight(~Location)+
+#   facet_wrap(~Location)+
+#   theme_minimal_grid()+
+#   theme(strip.text.x = element_blank())+
+#   scale_y_continuous(labels = unit_format(unit = "M"))+
+#   xlab('Time (days)')
+# 
+# 
+# data %>% 
+#   group_by(Run) %>% 
+#   summarise(TimeToPeak=which.max(Infecteds)) %>% summary()
+# 
+# 
+# 
+#   ggplot(aes(x=TimeToPeak))+
+#   geom_histogram()
 
 ```
-
-
 
 
 # Number of Infected Wards
@@ -91,59 +82,178 @@ wardcurves %>%
   geom_line()
 ```
 
-
-
-
-
+# Incidence curves
 
 ```{r}
 
+pathname='Locations/Brighton'
+#pathname = 'Testing'
 
-read.csv(file='London/TotalInfections.dat') %>% 
-  transmute(Time=row_number(),L1=X0)->epicurveL
+dir(pathname,pattern='PlayInfections.dat',recursive=TRUE)->pfilenames
+dir(pathname,pattern='WorkInfections.dat',recursive=TRUE)->wfilenames
 
-which.max(epicurveL$L1)
+filenames=c(pfilenames,wfilenames)
 
-read.csv(file='London2/TotalInfections.dat') %>% 
-  transmute(Time=row_number(),L2=X0)->epicurveL2
-
-which.max(epicurveL2$L2)
-
-read.csv(file='Testing/TotalInfections.dat') %>% 
-  transmute(Time=row_number(),LShorter=X0)->epicurveShorter
-
-which.max(epicurveShorter$LShorter)
+readincidence<-function (fname,fpath){        # read and process a single file
+#  Function to read in Work/PlayInfections.dat' type files (many columns, one for each class only of infecteds, Time is row number)
+  d<-read_delim(file.path(fpath,fname),col_names=FALSE,delim=' ',col_types = "iiiiiii")%>% select(Time=X1,Incidence=X4)
+   return(d)
+}
 
 
-epicurveL %>% 
-  full_join(.,epicurveL2,by='Time') %>% 
-  full_join(.,epicurveShorter,by='Time') %>% 
-  pivot_longer(-Time) %>% 
-  ggplot(aes(x=Time,y=value,colour=name))+
-  geom_line()
+readIncidenceRecovered<-function (fname,fpath){        # read and process a single file
+#  Function to read in Work/PlayInfections.dat' type files (many columns, one for each class only of infecteds, Time is row number)
+  d<-read_delim(file.path(fpath,fname),col_names=FALSE,delim=' ',col_types = "iiiiiii")%>% select(Time=X1,Incidence=X4,Recovered=X6)
+   return(d)
+}
+ 
+
+readPrevalence<-function (fname,fpath){        # read and process a single file
+#  Function to read in Work/PlayInfections.dat' type files (many columns, one for each class only of infecteds, Time is row number)
+  d<-read_delim(file.path(fpath,fname),col_names=FALSE,delim=' ',col_types = "iiiiiii")%>%  
+    transmute(Time=X1,Prevalence=X4+X5)
+   return(d)
+}
+```
+
+
+```{r}
+#PLAY infecteds
+dataIP <- tibble(filename = pfilenames) %>% # create a data frame
+                                                  # holding the file names
+  mutate(file_contents = map(filename,            # read files into a new data column
+                             ~readIncidenceRecovered(., pathname))) %>% # use the function written above to process files
+  mutate(Location=str_split(filename,'/',simplify = TRUE)[,1]) %>% 
+  mutate(Run=str_split(filename,'/',simplify = TRUE)[,2]) %>% 
+  select(-filename) %>% 
+  unnest(cols=file_contents)
+  
+
+# WORK infected
+dataIW <- tibble(filename = wfilenames) %>% # create a data frame
+                                                  # holding the file names
+  mutate(file_contents = map(filename,            # read files into a new data column
+                             ~readIncidenceRecovered(., pathname))) %>% # use the function written above to process files
+#  mutate(Location=str_split(filename,'/',simplify = TRUE)[,1]) %>% 
+  mutate(Run=str_split(filename,'/',simplify = TRUE)[,1]) %>% 
+  select(-filename) %>% 
+  unnest(cols=file_contents)
+
+bind_cols(dataIW,dataIP) %>% 
+  mutate(Incidence=Incidence+Incidence1) %>% 
+  mutate(Recovered=Recovered+Recovered1) %>% 
+  select(Time,Incidence,Recovered,Run)->dataIR
+
+dataIR %>%
+  #mutate(Incidence=Incidence/10^6) %>% 
+  #mutate(Recovered=Recovered/10^6) %>% 
+  filter(Time<250) %>% 
+  ggplot(aes(x=Time,group=Run))+
+  geom_line(aes(y=Incidence),alpha=0.1,colour='red')+
+#  geom_line(aes(y=Recovered),alpha=0.1)+
+#  gghighlight()+
+  theme_minimal_grid()+
+  theme(legend.position = "none")+
+ #scale_y_continuous(labels = unit_format(unit = "M"))+
+  xlab('Time (days)')
+#->p
+#ggplotly(p)
+
+dataIR %>% 
+  group_by(Run) %>% 
+  summarise(PeakIncidence=max(Incidence)) %>% 
+  summary()
+  
+```
+
+# Time To Peak Incidence
+
+```{r}
+dataIR %>% 
+   group_by(Run) %>% 
+   summarise(TimeToPeak=which.max(Incidence)) %>% 
+   ggplot(aes(x=TimeToPeak))+
+   geom_histogram(aes(y=..density..),bins=15)+
+  geom_density()+
+  theme_minimal_grid()+
+  xlab('Time to Peak Incidence')+
+  ylab('Density')
+
+dataIR %>% 
+   group_by(Run) %>% 
+   summarise(TimeToPeak=which.max(Incidence)) %>% summary()
+ 
+```
+
+
+
+
+
+
+# Prevalence Curves (Correct) 
+
+```{r}
+
+dataPrevP <- tibble(filename = pfilenames) %>% # create a data frame
+                                                  # holding the file names
+  mutate(file_contents = map(filename,            # read files into a new data column
+                             ~readPrevalence(., pathname))) %>% # use the function written above to process files
+  mutate(Location=str_split(filename,'/',simplify = TRUE)[,1]) %>% 
+  mutate(Run=str_split(filename,'/',simplify = TRUE)[,2]) %>% 
+  select(-filename) %>% 
+  unnest(cols=file_contents)
+
+dataPrevW <- tibble(filename = wfilenames) %>% # create a data frame
+                                                  # holding the file names
+  mutate(file_contents = map(filename,            # read files into a new data column
+                             ~readPrevalence(., pathname))) %>% # use the function written above to process files
+  mutate(Location=str_split(filename,'/',simplify = TRUE)[,1]) %>% 
+  mutate(Run=str_split(filename,'/',simplify = TRUE)[,2]) %>% 
+  select(-filename) %>% 
+  unnest(cols=file_contents)
+
+bind_cols(dataPrevW,dataPrevP) %>% 
+  mutate(Prevalence=Prevalence+Prevalence1) %>% 
+  select(Time,Prevalence,Location,Run)->dataPrev
+
+
+dataPrev %>% 
+  filter(Time<450) %>% 
+  ggplot(aes(x=Time,colour=Run))+
+  geom_line(aes(y=Prevalence),alpha=0.2)+
+  theme_minimal_grid()+
+#  gghighlight(Location)+
+#  facet_grid(~Location)+  
+  theme(legend.position = "none")+
+  xlab('Time (days)')
 
 
 ```
 
-
-# Epi curves per class
+# Attack Rate
 
 ```{r}
+library(kableExtra)
+dataIR %>% 
+  group_by(Run) %>% 
+  summarise(AttackRate=max(Recovered)) %>%
+  mutate(AttackRate2=100*AttackRate/56082077) %>% 
+  ggplot(aes(x=AttackRate2))+
+  geom_histogram(aes(y=..density..),bins=15)+
+  geom_density()+
+  xlab('Attack Rate (%)')+
+  ylab('Density')+
+  theme_minimal_grid()
 
-read.csv(file='WorkInfections.dat',sep=' ') %>% 
-  select(Time=X0,X0.1,X0.2,X0.3)->workinf
 
-read.csv(file='PlayInfections.dat',sep=' ') %>% 
-  select(Time=X0,X0.1,X0.2,X0.3)->playinf
-
-
-workinf %>% 
-  pivot_longer(-Time,names_to = 'Classes',values_to = 'NumberInfected')%>% 
-  ggplot(aes(x=Time,y=NumberInfected,colour=Classes))+
-  geom_line()+
-  ylab('Number of cases')+
-  scale_y_log10()
-
+dataIR %>% 
+  group_by(Run) %>% 
+  summarise(AttackNumbers=max(Recovered)) %>% 
+  mutate(Deaths=AttackNumbers/100) %>% 
+  mutate(AttackRate=100*AttackNumbers/56082077) %>%
+  summary() 
 
 ```
+# Prevalence Curves
 
+```{r Prevalence}

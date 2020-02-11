@@ -1707,7 +1707,7 @@ void SetInputFileNames(int choice,parameters *par){
     strcat(strcpy(par->PositionName,dirstring),"CBB2011.dat");
     strcat(strcpy(par->SeedName,dirstring),"seeds.dat");
     strcat(strcpy(par->NodesToTrack,dirstring),"seeds.dat");
-    strcat(strcpy(par->AdditionalSeeding,dirstring),"ExtraSeedsBirmingham.dat");
+    strcat(strcpy(par->AdditionalSeeding,dirstring),"ExtraSeedsBrighton.dat");
 	  return;
 	  break;
 	  

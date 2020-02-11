@@ -28,7 +28,7 @@ wardlookup<-read.csv('~/GitHub/MetaWards/data/2011/WardsProcessing/Ward_Lookup.c
 wardCentroids %>% 
   inner_join(.,wardlookup,by=c('wd11cd'='WD11CD'))->wardslookup2 
 
-mapview(wardslookup2,zcol='FID')
+#mapview(wardslookup2,zcol='FID')
 
 
 ```
@@ -68,33 +68,52 @@ mapview(wardslookuparrivalShef,zcol='AltArrival',cex = 'AltArrival')
 
 ```{r}
 
-allinfectionsLon=read.table(file='London/ForMattData.dat',sep = ' ')
+allinfectionsLon=read.table(file='Testing/London/0/ForMattData.dat',sep = ' ')
 
 allinfectionsLon %>% # make long data frame
   mutate(Time=row_number()) %>% # count up time, as row number
-  pivot_longer(-Time) %>% 
+  pivot_longer(-Time,values_to = 'Infected') %>% 
   mutate(Ward=as.integer(str_remove(name,'V'))) %>% 
   select(-name)->inf_longLon # rename name to Ward integers for easier matching
 
-
-
 inf_longLon %>% 
-  group_by(Ward) %>%               # by ward
-  filter(cumsum(value) < 1) %>%    # cumulative sum > 1 means it's just arrived/first infection
+  group_by(Ward) %>%  # by ward
+  filter(cumsum(Infected) < 1) %>%    # cumulative sum > 1 means it's just arrived/first infection
   mutate(Arrival=max(Time)) %>%    # find the maximum before that
   filter(row_number()==1) %>%      # take the first row of group_by
   select(Ward,Arrival) %>%    # # select columns and rename and save in a data frame
   ungroup() -> arrivalsLon
+
+inf_longLon %>% 
+  group_by(Ward) %>% 
+  slice(which.max(Infected))->TimeToPeak
+```
+
+
+```{r}
+
+TimeToPeak %>% 
+  ggplot(aes(x=Time))+
+  geom_histogram()
+
+```
+
+```{r}
       
-wardslookup2 %>% inner_join(.,arrivalsLon, by=c('FID'='Ward')) %>% 
+wardslookup2 %>% 
+  inner_join(.,arrivalsLon, by=c('FID'='Ward')) %>% 
   mutate(AltArrival=log(1/Arrival)*100)->wardslookuparrivalLon
 
-mapview(wardslookuparrivalLon,zcol='AltArrival',cex = 'AltArrival')
+wardslookuparrivalLon %>% 
+  inner_join(.,TimeToPeak, by=c('FID'='Ward'))%>% 
+  mutate(AltTime=Time/100)->wardslookuparrivaltimetopeakL
+
+mapview(wardslookuparrivaltimetopeakL,zcol='Time',cex = 'AltTime')
 
 
 # TODO:
-# Time to peak. 
-# Time to 10 cases.
+# Time to peak. DONE 
+# Time to 10 cases. 
 # Lookup from Postcode to Ward/OA.
 ```
 
