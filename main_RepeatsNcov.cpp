@@ -88,7 +88,7 @@ int main(int argc, char *argv[]){
 	SetInputFileNames(4,par);
 
 	nseeds=ReadDoneFile(par->SeedName,to_seed);
-
+	
 	printf("2\n");
 	
 	net=BuildWardsNetworkDistance(par);

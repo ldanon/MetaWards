@@ -7,6 +7,8 @@
 #include "wards_lib.h"
 #include "globals.h"
 
+char dirname[100]="/Users/eb15081/";
+
 #ifdef VTKWARDS
 	#include "vtkwards.h"
 #endif
@@ -984,9 +986,9 @@ void SeedInfectionAtNode(network *net, parameters *par, int node_seed, int **inf
 	
 	while(links[j].ito!=node_seed || links[j].ifrom!=node_seed)j++;
 	
-	//	printf("j %d link from %d to %d\n",j,links[j].ifrom,links[j].ito);	
+		printf("j %d link from %d to %d\n",j,links[j].ifrom,links[j].ito);	
 	
-	//	printf("seeding here\n");
+		printf("seeding here\n");
 
 	if(links[j].suscept<par->initial_inf){
 		wards[node_seed].play_suscept-=par->initial_inf;
@@ -1332,13 +1334,13 @@ int ExtractData(network *net,int **inf,int **pinf, int t, FILE **files){
 	int nInfWardsAllClasses=0;
 	int Total=0;
 	int TotalNew=0;
-	int Recovereds,Susceptibles;
+	int Recovereds,Susceptibles,Latent;
 	double sumX,sumY,sumX2,sumY2;
 	double meanX,meanY,varX,varY,Dispersal;
 
 	sumX=sumY=sumX2=sumY2=meanX=meanY=varX=varY=Dispersal=0.0;
 
-	Recovereds=Susceptibles=0;
+	Recovereds=Susceptibles=Latent=0;
 	
 	fprintf(files[0],"%d ",t);
 	fprintf(files[1],"%d ",t);
@@ -1399,7 +1401,9 @@ int ExtractData(network *net,int **inf,int **pinf, int t, FILE **files){
 		fprintf(files[1],"%d ",nInfWards[i]);
 		fprintf(files[3],"%d ",PInfTot[i]);
 		
-		if(i<N_INF_CLASSES-1){
+		if(i==1)
+		  {Latent+=InfTot[i]+PInfTot[i];}
+		else if(i<N_INF_CLASSES-1 & i>1){
 			Total+=InfTot[i]+PInfTot[i];
 		}
 		else Recovereds+=InfTot[i]+PInfTot[i];
@@ -1435,12 +1439,13 @@ int ExtractData(network *net,int **inf,int **pinf, int t, FILE **files){
 	fflush(files[4]);
 
 	printf("S: %d    ",Susceptibles);
+	printf("E: %d    ",Latent);
 	printf("I: %d    ",Total);
 	printf("R: %d    ",Recovereds);
 	printf("IW: %d   ",nInfWards[0]);
  	printf("TOTAL POPULATION %d\n",Susceptibles+Total+Recovereds);
 
-	return Total;
+	return (Total+Latent);
 }
 
 
@@ -1496,10 +1501,12 @@ int ExtractDataForGraphicsToFile(network *net, int **inf,int **pinf,FILE *outF){
 				TotalInfections[j]+=pinf[i][j];
 				Total+=pinf[i][j];			
 			}
-			if(i==0)fprintf(outF,"%d ",TotalInfections[j]);// incidence
-//			if(i==N_INF_CLASSES-1)fprintf(outF,"%d ",TotalInfections[j]); // prevalences
+			if(i==2)fprintf(outF,"%d ",TotalInfections[j]);// incidence
+			//if(i==N_INF_CLASSES-1)fprintf(outF,"%d ",TotalInfections[j]); // prevalences
 			//if(i==N_INF_CLASSES-1)Prevalence[j]=TotalInfections[j];
 		}
+
+		  //if(i==N_INF_CLASSES-1)fprintf(outF,"%d ",TotalInfections[j]);// incidence
 		
 	}
 	
@@ -1544,9 +1551,11 @@ parameters *InitialiseParameters(){
 #endif
 	
 #ifdef NCOV
-	double beta[N_INF_CLASSES]={	0, 0, 0.8, 0.8, 0};
-	double Progress[N_INF_CLASSES]={	1, 1.0/4.1, 1.0/1.1, 1/1.1, 0};
-	double TooIllToMove[N_INF_CLASSES]={ 0, 0, 0, 0.8, 0};
+	//double beta[N_INF_CLASSES]={	0, 0, 0.95, 0.95, 0};
+	double beta[N_INF_CLASSES]={	0, 0, 0.95, 0.95, 0};
+	//double Progress[N_INF_CLASSES]={	1, 1.0/5.2, 1.0/1.1, 1/1.1, 0};
+	double Progress[N_INF_CLASSES]={	1, 0.1923, 0.909091, 0.909091, 0};
+	double TooIllToMove[N_INF_CLASSES]={ 0, 0, 0, 0.0, 0};
  	double ContribFOI[N_INF_CLASSES]={1, 1, 1, 1, 0}; // set to 1 for the time being;
 #endif
 	
@@ -1644,19 +1653,20 @@ void SetInputFileNames(int choice,parameters *par){
 			return;
 			break;
 	 case 4:
-	    printf("Using files in /Users/ld450/GitHub/MetaWards/2011data/ \n");//for 2011 data 
-	    strcpy(par->WorkName,"/Users/ld450/GitHub/MetaWards/2011data/EW1.dat");
-      strcpy(par->PlayName,"/Users/ld450/GitHub/MetaWards/2011data/PlayMatrix.dat");
-//	    strcpy(par->IdentifierName,"/Users/ld450/GitHub/MetaWards/data/Identifiers.dat");
-//	    strcpy(par->IdentifierName2,"/Users/ld450/GitHub/MetaWards/data/level3.dat");
+	   printf("Using files in %sGitHub/MetaWards/2011data/ \n",dirname);//for 2011 data 
+	    sprintf(par->WorkName,"%sGitHub/MetaWards/2011data/EW1.dat",dirname);
+	    //strcpy(par->WorkName,filename);
+	    //strcpy(par->PlayName,"/Users/ld450/GitHub/MetaWards/2011data/PlayMatrix.dat");
+	    sprintf(par->PlayName,"%sGitHub/MetaWards/2011data/PlayMatrix.dat",dirname);
 	  
-//	    strcpy(par->WeekendName,"/Users/ld450/GitHub/MetaWards/data/WeekendMatrix.dat");
-	    strcpy(par->PlaySizeName,"/Users/ld450/GitHub/MetaWards/2011data/PlaySize.dat");
-	    strcpy(par->PositionName,"/Users/ld450/GitHub/MetaWards/2011data/CBB2011.dat");
-	    strcpy(par->SeedName,"/Users/ld450/GitHub/MetaWards/2011data/seeds.dat");
-	    strcpy(par->NodesToTrack,"/Users/ld450/GitHub/MetaWards/2011data/seeds.dat");
+//	    strcpy(par->WeekendName,"/Users/eb15081/Documents/GitHub/MetaWards/data/WeekendMatrix.dat");
+	    //strcpy(par->PlaySizeName,"/Users/ld450/GitHub/MetaWards/2011data/PlaySize.dat");
+	    sprintf(par->PlaySizeName,"%sGitHub/MetaWards/2011data/PlaySize.dat",dirname);
+	    sprintf(par->PositionName,"%sGitHub/MetaWards/2011data/CBB2011.dat",dirname);
+	    sprintf(par->SeedName,"%sGitHub/MetaWards/2011data/seeds.dat",dirname);
+	    sprintf(par->NodesToTrack,"%sGitHub/MetaWards/2011data/seeds.dat",dirname);
 	  
-	    strcpy(par->AdditionalSeeding,"/Users/ld450/GitHub/MetaWards/2011data/ExtraSeeds.dat");
+	    sprintf(par->AdditionalSeeding,"%sGitHub/MetaWards/2011data/ExtraSeeds.dat",dirname);
 	  return;
 	  break;
 	  
@@ -1673,7 +1683,7 @@ void SetInputFileNames(int choice,parameters *par){
 void Iterate(network *net, int **inf, int **playinf, parameters *par, gsl_rng *r,int t){
 
 	int i,j,k;
-	double temp;
+	double temp,uv=0.1;
 	int staying, moving,playmove,l;
 	double InfProb,Rate;
 
@@ -1722,7 +1732,7 @@ void Iterate(network *net, int **inf, int **playinf, parameters *par, gsl_rng *r
 						}
 						moving = inf[i][j] - staying;					// number moving. This is I_ij-G_ij
 
-						wards[links[j].ifrom].DayFOI+=staying*par->ContribFOI[i]*par->beta[i];
+						wards[links[j].ifrom].DayFOI+=staying*par->ContribFOI[i]*par->beta[i]*(1-uv+uv*cos(2*M_PI*t/365.0));
 
 						//Daytime Force of 
 						//Infection is proportional to
@@ -1731,16 +1741,16 @@ void Iterate(network *net, int **inf, int **playinf, parameters *par, gsl_rng *r
 						// this is the sum for all G_ij (including g_ii
 						
 						
-						wards[links[j].ito].DayFOI += moving*par->ContribFOI[i]*par->beta[i];
+						wards[links[j].ito].DayFOI += moving*par->ContribFOI[i]*par->beta[i]*(1-uv+uv*cos(2*M_PI*t/365.0));
 
 						// Daytime FOI for destination is incremented (including self links, I_ii)
 
 					}
 					else {
-						wards[links[j].ifrom].DayFOI += inf[i][j]*par->ContribFOI[i]*par->beta[i];
+					  wards[links[j].ifrom].DayFOI += inf[i][j]*par->ContribFOI[i]*par->beta[i]*(1-uv+uv*cos(2*M_PI*t/365.0));
 					}
 
-					wards[links[j].ifrom].NightFOI += inf[i][j]*par->ContribFOI[i]*par->beta[i];
+					wards[links[j].ifrom].NightFOI += inf[i][j]*par->ContribFOI[i]*par->beta[i]*(1-uv+uv*cos(2*M_PI*t/365.0));
 					// Nighttime Force of Infection is 
 					// prop. to the number of Infected individuals
 					// in the ward 
@@ -1756,7 +1766,7 @@ void Iterate(network *net, int **inf, int **playinf, parameters *par, gsl_rng *r
 
 				if(playinf[i][j]!=0){
 
-					wards[j].NightFOI += playinf[i][j] * par->ContribFOI[i] * par->beta[i];
+				  wards[j].NightFOI += playinf[i][j] * par->ContribFOI[i] * par->beta[i]*(1-uv+uv*cos(2*M_PI*t/365.0));
 
 					staying = gsl_ran_binomial(r,(par->DynPlayAtHome)*par->TooIllToMove[i],playinf[i][j]); // number of people staying gets bigger as PlayAtHome increases
 
@@ -1785,7 +1795,7 @@ void Iterate(network *net, int **inf, int **playinf, parameters *par, gsl_rng *r
 							}	
 							else {
 #endif				
-							wards[plinks[k].ito].DayFOI += playmove * par->ContribFOI[i] * par->beta[i];
+							  wards[plinks[k].ito].DayFOI += playmove * par->ContribFOI[i] * par->beta[i]*(1-uv+uv*cos(2*M_PI*t/365.0));
 							
 							
 #ifdef SELFISOLATE							
@@ -1798,7 +1808,7 @@ void Iterate(network *net, int **inf, int **playinf, parameters *par, gsl_rng *r
 						k++;					
 					}
 
-					wards[j].DayFOI+= (moving + staying) * par->ContribFOI[i] * par->beta[i];
+					wards[j].DayFOI+= (moving + staying) * par->ContribFOI[i] * par->beta[i]*(1-uv+uv*cos(2*M_PI*t/365.0));
 
 				} 
 
@@ -2078,7 +2088,7 @@ void IterateWeekend(network *net, int **inf, int **playinf, parameters *par, gsl
 					weinf[i][j]+=playinf[i][j];  // add to work the infecteds in the play matrix (pool together)
 
 				if(weinf[i][j]>0){ // distribute infecteds and update FOI 
-					wards[j].NightFOI += weinf[i][j] * par->ContribFOI[i] * par->beta[i];
+				  wards[j].NightFOI += weinf[i][j] * par->ContribFOI[i] * par->beta[i]*(1-0.5+0.5*cos(2*M_PI*t/365.0));
 
 					staying = gsl_ran_binomial(r,(par->DynPlayAtHome)*par->TooIllToMove[i],weinf[i][j]); // number of people staying gets bigger as PlayAtHome increases
 
@@ -2101,7 +2111,7 @@ void IterateWeekend(network *net, int **inf, int **playinf, parameters *par, gsl
 
 							wemove = gsl_ran_binomial(r,ProbScaled,moving);
 
-							wards[welinks[k].ito].DayFOI += wemove * par->ContribFOI[i] * par->beta[i];
+							wards[welinks[k].ito].DayFOI += wemove * par->ContribFOI[i] * par->beta[i]*(1-0.5+0.5*cos(2*M_PI*t/365.0));
 
 							moving -= wemove;
 
@@ -2110,7 +2120,7 @@ void IterateWeekend(network *net, int **inf, int **playinf, parameters *par, gsl
 						k++;					
 					}
 
-					wards[j].DayFOI+= (moving + staying) * par->ContribFOI[i] * par->beta[i]; // whatever is left contributes to home ward
+					wards[j].DayFOI+= (moving + staying) * par->ContribFOI[i] * par->beta[i]*(1-0.5+0.5*cos(2*M_PI*t/365.0)); // whatever is left contributes to home ward
 
 				} 
 

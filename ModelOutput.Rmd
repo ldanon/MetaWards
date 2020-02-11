@@ -10,7 +10,7 @@ library(gghighlight)
 # Number of Infected Wards
 
 ```{r}
-
+setwd("~/GitHub/MetaWards/")
 read.csv(file='NumberWardsInfected.dat',sep=' ') %>% 
   mutate(Time=X0) %>% 
   select(-X,-X0,-X0.4) ->wardcurves
@@ -28,10 +28,17 @@ wardcurves %>%
 
 
 ```{r}
-read.csv(file='London/TotalInfections.dat') %>% 
+read.csv(file='TotalInfections.dat') %>% 
   transmute(Time=row_number(),L1=X0)->epicurveL
 
-which.max(epicurveL$L1)
+N=56082077
+plot(epicurveL/N,type="l")
+45987664/56082077
+#plot(cumsum(epicurveL)/N,type="l")
+which.max(epicurveL$L)
+#122, 118, 127, 126, 120, 128,125
+mean(c(122,118,127,126,120,128,125,126))/30
+diff(range(c(122,118,127,126,120,128,125,126)))
 
 read.csv(file='London2/TotalInfections.dat') %>% 
   transmute(Time=row_number(),L2=X0)->epicurveL2
@@ -85,7 +92,13 @@ WardsEW <- read_sf(dsn='~/GitHub/MetaWards/data/2011/shapefile/Wards_December_20
 
 st_centroid(WardsEW)->wardCentroids
 
-wardlookup<-read.csv('~/GitHub/MetaWards/data/2011/WardsProcessing/Ward_Lookup.csv') 
+wardlookup<-read.csv('~/GitHub/MetaWards/2011/WardsProcessing/Ward_Lookup.csv') 
+wards2<-read.csv('~/GitHub/MetaWards/2011//WardsProcessing/Ward_to_LA.csv') 
+
+names(wardlookup)
+WARDS=merge(wardlookup,wards2,by.x="FID",by.y="FID",all.x=T)
+names(wards2)
+table(wards2$GOR10NM)
 
 wardCentroids %>% 
   inner_join(.,wardlookup,by=c('wd11cd'='WD11CD'))->wardslookup2 
@@ -104,13 +117,62 @@ wardCentroids %>%
 
 allinfectionsShef=read.table(file='ForMattData.dat',sep = ' ')
 
+plot(allinfectionsShef[,1],type="l")
+
+dim(allinfectionsShef)
+plot(allinfectionsShef[,1],type="l")
+
 allinfectionsShef %>% # make long data frame
   mutate(Time=row_number()) %>% # count up time, as row number
   pivot_longer(-Time) %>% 
   mutate(Ward=as.integer(str_remove(name,'V'))) %>% 
   select(-name)->inf_longShef # rename name to Ward integers for easier matching
 
+head(inf_longShef)
+allinfectionsShef[1,]
 
+WARDS %>% inner_join(.,inf_longShef, by=c('FID'='Ward'),all.y=T,all.x=F) %>% 
+  group_by(GOR10NM,Time)%>% 
+  summarise(cases=sum(value)) -> region_inf
+
+region_inf%>%
+  group_by(GOR10NM) %>%
+  summarise(peaktime=which.max(cases),peakcases=max(cases))
+  
+```
+
+
+```{r}
+#pdf("~/GitHub/MetaWards/figs/region_timetopeak.pdf",width=10,height=7)
+#jpeg("~/GitHub/MetaWards/figs/region_timetopeak2.jpg",width=480*1.5,height=480)
+par(oma=c(0.5,0.5,0.5,10))
+n1=names(table(region_inf$GOR10NM))
+mycols=rainbow(length(n1))
+plot(region_inf$cases[region_inf$GOR10NM=="South West"],type="l",xlim=c(80,180),xlab="Days since introduction",ylab="Number of people infected",cex.axis=1.5,cex.lab=1.7)
+i=1
+for(r in n1)
+{
+  lines(region_inf$cases[region_inf$GOR10NM==r],type="l",col=mycols[i],lwd=3)
+  max_x=which.max(smooth(region_inf$cases[region_inf$GOR10NM==r],twiceit=T))
+  max_y=max(smooth(region_inf$cases[region_inf$GOR10NM==r],twiceit=T))
+  lines(x=c(max_x,max_x),y=c(-10000,max_y),col=mycols[i])
+  #abline(v=which.max(region_inf$cases[region_inf$GOR10NM==r]),col=mycols[i])
+  i=i+1
+}
+
+par(fig = c(0.5, 1, 0.25, 1), oma = c(0, 0, 0, 0.2), mar = c(0, 0, 0, 0), new = TRUE)
+plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n")
+#legend("bottom", c("IM", "IBD", "1R", "2R"), xpd = TRUE, horiz = TRUE, inset = c(0, 0), bty = "n", pch = c(4, 2, 15, 19), col = 1:4, cex = 2)
+n1[1]="Wales"
+n1[10]="Yorkshire and Humber"
+legend('right',n1,lty=1,col=mycols,lwd=3,bty="1")
+#dev.off()
+```
+
+
+```{r}
+%>% 
+  mutate(AltArrival=log(1/Arrival)*100)->wardslookuparrivalShef
 
 inf_longShef %>% 
   group_by(Ward) %>%               # by ward
@@ -120,9 +182,21 @@ inf_longShef %>%
   select(Ward,Arrival) %>%    # # select columns and rename and save in a data frame
   ungroup() -> arrivals
       
+hist(arrivals)
+
 wardslookup2 %>% inner_join(.,arrivals, by=c('FID'='Ward')) %>% 
   mutate(AltArrival=log(1/Arrival)*100)->wardslookuparrivalShef
 
+WARDS %>% inner_join(.,arrivals, by=c('FID'='Ward')) %>% 
+  mutate(AltArrival=log(1/Arrival)*100)->wardslookuparrivalShef
+
+hist(wardslookuparrivalShef$Arrival[wardslookuparrivalShef$GOR10NM=="Yorkshire and The Humber"])
+
+wardslookuparrivalShef %>% 
+  group_by(GOR10NM)%>% 
+  summarise(ttp = mean(Arrival))
+  
+  
 mapview(wardslookuparrivalShef,zcol='AltArrival',cex = 'AltArrival')
 
 
