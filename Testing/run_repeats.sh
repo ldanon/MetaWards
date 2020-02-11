@@ -8,7 +8,7 @@ ZERO=0
 COUNT=$3
 # echo $(($3+3))
 # bash until loop
-until [ $COUNT -gt $(($3+20)) ]; do
+until [ $COUNT -gt $(($3+100)) ]; do
     echo $COUNT
     mkdir $COUNT
     cd $COUNT

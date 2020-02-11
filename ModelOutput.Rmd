@@ -86,7 +86,7 @@ wardcurves %>%
 
 ```{r}
 
-pathname='Locations/Brighton'
+pathname='Locations'
 #pathname = 'Testing'
 
 dir(pathname,pattern='PlayInfections.dat',recursive=TRUE)->pfilenames
@@ -114,6 +114,7 @@ readPrevalence<-function (fname,fpath){        # read and process a single file
     transmute(Time=X1,Prevalence=X4+X5)
    return(d)
 }
+
 ```
 
 
