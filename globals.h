@@ -61,6 +61,8 @@ typedef struct parameters{
 	char NodesToTrack[100]; // LIST OF NODES TO TRACK
 
 	char AdditionalSeeding[100]; // LIST OF EXTRA SEED WARDS...
+	
+	char UVFilename[100];
 
 	double beta[N_INF_CLASSES];
 	double TooIllToMove[N_INF_CLASSES];
@@ -87,7 +89,7 @@ typedef struct parameters{
 	double NeighbourWeightThreshold;
 	
 	double DailyImports; // proportion of daily imports if #IMPORTS is defined
-
+  double UV;
 }parameters;
 
 

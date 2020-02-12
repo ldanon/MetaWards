@@ -35,9 +35,7 @@ int main(int argc, char *argv[]){
 	r = gsl_rng_alloc (gsl_rng_default);
 	gsl_rng_set (r, -1*(int)time(NULL) + atoi(argv[1]));
 	
-	
-	
-  printf("Input 2: parameter file name to be read %s\n",argv[2]);
+	printf("Input 2: parameter file name to be read %s\n",argv[2]);
 	
 	max=(double *)malloc(sizeof(double));
 	min=(double *)malloc(sizeof(double));
@@ -49,10 +47,14 @@ int main(int argc, char *argv[]){
 	
 	ReadParametersFile(par,argv[2],atoi(argv[3])); // function to read parameters from file and put into par. 
 	
+	par->UV=atof(argv[4]);
+	
 	SetInputFileNames(4,par);
+	
 
+	
 	nseeds=ReadDoneFile(par->SeedName,to_seed);
-
+	
 	printf("2\n");
 	
 	net=BuildWardsNetworkDistance(par);
@@ -110,5 +112,7 @@ int main(int argc, char *argv[]){
 //		_CrtDumpMemoryLeaks();
 	return 0;
 }
+
+
 
 
