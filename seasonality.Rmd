@@ -14,40 +14,103 @@ library(scales)
 
 ```
 
+# UV Curves
+
+
+
+```{r UV}
+
+pathname = 'Testing'
+
+dir(pathname,pattern='PlayInfections.dat',recursive=TRUE)->pfilenames
+dir(pathname,pattern='WorkInfections.dat',recursive=TRUE)->wfilenames
+
+
+dataUVP <- tibble(filename = pfilenames) %>% # create a data frame
+                                                  # holding the file names
+  mutate(file_contents = map(filename,            # read files into a new data column
+                             ~readIncidenceRecovered(., pathname))) %>% # use the function written above to process files
+  mutate(Seasonal=str_remove(str_split(filename,'/',simplify = TRUE)[,1],'UV')) %>% 
+  #mutate(Run=str_split(filename,'/',simplify = TRUE)[,2]) %>% 
+  select(-filename) %>% 
+  unnest(cols=file_contents)
+  
+
+# WORK infected
+dataUVW <- tibble(filename = wfilenames) %>% # create a data frame
+                                                  # holding the file names
+  mutate(file_contents = map(filename,            # read files into a new data column
+                             ~readIncidenceRecovered(., pathname))) %>% # use the function written above to process files
+  mutate(Seasonal=str_remove(str_split(filename,'/',simplify = TRUE)[,1],'UV')) %>% 
+  #mutate(Run=str_split(filename,'/',simplify = TRUE)[,2]) %>% 
+  select(-filename) %>% 
+  unnest(cols=file_contents)
+
+bind_cols(dataUVW,dataUVP) %>% 
+  mutate(Incidence=Incidence+Incidence1) %>% 
+  mutate(Recovered=Recovered+Recovered1) %>% 
+  select(Time,Incidence,Recovered,Seasonal)->dataUV
+
+dataUV %>%
+  filter(Time<650) %>% 
+  mutate(Date=as.Date(Time,origin="2020-2-10")) %>% 
+  ggplot(aes(x=Date,colour=Seasonal))+
+  geom_line(aes(y=Incidence),alpha=1,size=1.5)+
+#  geom_line(aes(y=Recovered),alpha=0.1)+
+  theme_half_open()+
+  theme(legend.position = "top")+
+ #scale_y_continuous(labels = unit_format(unit = "M"))+
+  xlab('Time')+
+  scale_x_date(breaks=date_breaks("3 months"),
+               labels = date_format("%b"))->p
+
+
+```
+```{r}
+
+dataUV %>% 
+  group_by(Seasonal) %>% 
+  summarise(Peak=which.max(Incidence),PeakIncidence=max(Incidence),AttackRate=100*max(Recovered)/56082077)
+#->p
+#ggplotly(p)
+
+
+
+```
+
 ```{r}
 t=1:365
-theta=seq(0,2*pi,pi/100)
+#theta=seq(0,2*pi,pi/100)
 
 seasonality<-function(t,m){
   x=(1-m/2.0)+m*cos(2*pi*t/365)/2.0
-  return(x)
+  return(tibble(t,x))
   } 
 
-#seasonality(t,1.0)
 
-# plot(theta,cos(theta),type="l")
-# plot(365*theta/(2*pi),cos(theta),type="l")
+tibble(m=c(0,0.25,0.5,0.75,1)) %>% 
+  mutate(seasoncols=map(m,~seasonality(t,.))) %>% 
+  unnest(cols=seasoncols) %>% 
+  mutate(Seasonal=as.factor(m))->seasoncurves
 
-# m=0.5
-# plot(t,1-m+m*cos(2*pi*t/365),type="l")
-# 
-# uv=2*m
-# plot(t,1-uv/2+uv*cos(2*pi*t/365)/2,type="l")
+seasoncurves %>% 
+  mutate(Date=as.Date(t,origin="2020-1-1")) %>% 
+  ggplot(aes(x=Date,y=x,colour=Seasonal))+
+  geom_line(size=2,alpha=0.8)+
+  xlab('')+
+  ylab('Seasonal Scaling')+
+  theme_minimal_grid()+
+  theme(legend.position = 'none')+
+  panel_border()+
+  scale_y_continuous(position='right')+
+  scale_x_date(breaks=date_breaks("3 months"),
+               labels = date_format("%b"))->inset
 
-#m=1
 
+inset
+# put the plots together. 
 
-plot(t,seasonality(t,1),type="l",ylab="Relative transmission rate",xlab="Day of the year")
-mycols=rainbow(length(seq(0,1,0.2)))
-i=1
-for(m in seq(0,1,0.2))
-{
-  x=seasonality(t,m)
-  
-  lines(t,x,type="l",col=mycols[i],lwd=3)
-  i=i+1
-}
+ggdraw(p)+
+  draw_plot(inset,.65,.5,.35,.4)
 
-tibble(m=seq(0,1,0.2)) %>% 
-  mutate(Seasonality=map(m,))
 ```
