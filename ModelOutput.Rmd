@@ -86,13 +86,8 @@ wardcurves %>%
 
 ```{r}
 
-pathname='Locations'
-#pathname = 'Testing'
+#pathname='Locations'
 
-dir(pathname,pattern='PlayInfections.dat',recursive=TRUE)->pfilenames
-dir(pathname,pattern='WorkInfections.dat',recursive=TRUE)->wfilenames
-
-filenames=c(pfilenames,wfilenames)
 
 readincidence<-function (fname,fpath){        # read and process a single file
 #  Function to read in Work/PlayInfections.dat' type files (many columns, one for each class only of infecteds, Time is row number)
@@ -135,24 +130,24 @@ dataIW <- tibble(filename = wfilenames) %>% # create a data frame
                                                   # holding the file names
   mutate(file_contents = map(filename,            # read files into a new data column
                              ~readIncidenceRecovered(., pathname))) %>% # use the function written above to process files
-#  mutate(Location=str_split(filename,'/',simplify = TRUE)[,1]) %>% 
-  mutate(Run=str_split(filename,'/',simplify = TRUE)[,1]) %>% 
+  mutate(Location=str_split(filename,'/',simplify = TRUE)[,1]) %>% 
+  mutate(Run=str_split(filename,'/',simplify = TRUE)[,2]) %>% 
   select(-filename) %>% 
   unnest(cols=file_contents)
 
 bind_cols(dataIW,dataIP) %>% 
   mutate(Incidence=Incidence+Incidence1) %>% 
   mutate(Recovered=Recovered+Recovered1) %>% 
-  select(Time,Incidence,Recovered,Run)->dataIR
+  select(Time,Incidence,Recovered,Location,Run)->dataIR
 
 dataIR %>%
   #mutate(Incidence=Incidence/10^6) %>% 
   #mutate(Recovered=Recovered/10^6) %>% 
-  filter(Time<250) %>% 
-  ggplot(aes(x=Time,group=Run))+
-  geom_line(aes(y=Incidence),alpha=0.1,colour='red')+
+  filter(Time<450) %>% 
+  ggplot(aes(x=Time,colour=Run))+
+  geom_line(aes(y=Incidence),alpha=0.1)+
 #  geom_line(aes(y=Recovered),alpha=0.1)+
-#  gghighlight()+
+  facet_wrap(~Location)+
   theme_minimal_grid()+
   theme(legend.position = "none")+
  #scale_y_continuous(labels = unit_format(unit = "M"))+
@@ -255,6 +250,64 @@ dataIR %>%
   summary() 
 
 ```
-# Prevalence Curves
+# UV Curves
 
-```{r Prevalence}
+
+
+```{r UV}
+
+pathname = 'Testing'
+
+dir(pathname,pattern='PlayInfections.dat',recursive=TRUE)->pfilenames
+dir(pathname,pattern='WorkInfections.dat',recursive=TRUE)->wfilenames
+
+
+dataUVP <- tibble(filename = pfilenames) %>% # create a data frame
+                                                  # holding the file names
+  mutate(file_contents = map(filename,            # read files into a new data column
+                             ~readIncidenceRecovered(., pathname))) %>% # use the function written above to process files
+  mutate(Seasonal=str_remove(str_split(filename,'/',simplify = TRUE)[,1],'UV')) %>% 
+  #mutate(Run=str_split(filename,'/',simplify = TRUE)[,2]) %>% 
+  select(-filename) %>% 
+  unnest(cols=file_contents)
+  
+
+# WORK infected
+dataUVW <- tibble(filename = wfilenames) %>% # create a data frame
+                                                  # holding the file names
+  mutate(file_contents = map(filename,            # read files into a new data column
+                             ~readIncidenceRecovered(., pathname))) %>% # use the function written above to process files
+  mutate(Seasonal=str_remove(str_split(filename,'/',simplify = TRUE)[,1],'UV')) %>% 
+  #mutate(Run=str_split(filename,'/',simplify = TRUE)[,2]) %>% 
+  select(-filename) %>% 
+  unnest(cols=file_contents)
+
+bind_cols(dataUVW,dataUVP) %>% 
+  mutate(Incidence=Incidence+Incidence1) %>% 
+  mutate(Recovered=Recovered+Recovered1) %>% 
+  select(Time,Incidence,Recovered,Seasonal)->dataUV
+
+dataUV %>%
+  filter(Time<500) %>% 
+  ggplot(aes(x=Time,colour=Seasonal))+
+  geom_line(aes(y=Incidence),alpha=1,size=2)+
+#  geom_line(aes(y=Recovered),alpha=0.1)+
+  theme_minimal_grid()+
+#  theme(legend.position = "none")+
+ #scale_y_continuous(labels = unit_format(unit = "M"))+
+  xlab('Time (days)')
+```
+```{r}
+
+dataUV %>% 
+  group_by(UV) %>% 
+  summarise(which.max(Incidence),100*max(Recovered)/56082077)
+#->p
+#ggplotly(p)
+
+dataIR %>% 
+  group_by(Run) %>% 
+  summarise(PeakIncidence=max(Incidence)) %>% 
+  summary()
+
+```
