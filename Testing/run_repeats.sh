@@ -8,14 +8,14 @@ ZERO=0
 COUNT=$3
 # echo $(($3+3))
 # bash until loop
-until [ $COUNT -gt $(($3+20)) ]; do
+until [ $COUNT -gt $(($3+100)) ]; do
     echo $COUNT
     mkdir $COUNT
     cd $COUNT
 #    nohup ../$1 $RANDOM ../$2 $COUNT> /dev/null 
     echo $(pwd)
-    echo nohup ../$1 $RANDOM ../$2 $ZERO> /dev/null 
-    nohup ../$1 $RANDOM ../$2 $ZERO> /dev/null 
+    echo nohup ../$1 $RANDOM ../$2 $COUNT> /dev/null 
+    nohup ../$1 $RANDOM ../$2 $COUNT> /dev/null 
 #    sleep 2
     cd ..
     let COUNT=COUNT+1
