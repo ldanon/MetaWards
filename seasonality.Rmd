@@ -1,0 +1,53 @@
+---
+title: "Seasonality Model Plots"
+output: html_notebook
+---
+```{r}
+
+library(tidyverse)
+library(tidyverse)
+library(gghighlight)
+library(purrr)
+library(plotly)
+library(cowplot)
+library(scales)
+
+```
+
+```{r}
+t=1:365
+theta=seq(0,2*pi,pi/100)
+
+seasonality<-function(t,m){
+  x=(1-m/2.0)+m*cos(2*pi*t/365)/2.0
+  return(x)
+  } 
+
+#seasonality(t,1.0)
+
+# plot(theta,cos(theta),type="l")
+# plot(365*theta/(2*pi),cos(theta),type="l")
+
+# m=0.5
+# plot(t,1-m+m*cos(2*pi*t/365),type="l")
+# 
+# uv=2*m
+# plot(t,1-uv/2+uv*cos(2*pi*t/365)/2,type="l")
+
+#m=1
+
+
+plot(t,seasonality(t,1),type="l",ylab="Relative transmission rate",xlab="Day of the year")
+mycols=rainbow(length(seq(0,1,0.2)))
+i=1
+for(m in seq(0,1,0.2))
+{
+  x=seasonality(t,m)
+  
+  lines(t,x,type="l",col=mycols[i],lwd=3)
+  i=i+1
+}
+
+tibble(m=seq(0,1,0.2)) %>% 
+  mutate(Seasonality=map(m,))
+```
