@@ -30,8 +30,8 @@ Clone the repository
 Change in to the repository and run `make`
 
 ```ShellSession
-[user@host ~]$ cd MetaWards
-[user@host MetaWards]$ make
+[user@host ~]$ cd MetaWards/Model
+[user@host Model]$ make
 ```
 
 This produces an executable named `wards.o`
