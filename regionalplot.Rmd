@@ -1,0 +1,61 @@
+---
+title: "Reagional Model Plots"
+output: html_notebook
+---
+```{r}
+
+library(tidyverse)
+library(tidyverse)
+library(gghighlight)
+library(purrr)
+library(plotly)
+library(cowplot)
+library(scales)
+
+```
+
+
+```{r}
+wardlookup<-read.csv('~/GitHub/MetaWards/data/2011/WardsProcessing/Ward_Lookup.csv') 
+lad2region<-read.csv('~/GitHub/MetaWards/data/2011/WardsProcessing/Output_Area_2011_to_Builtup_Area_Subdivision_to_Builtup_Area_to_Local_Authority_District_to_Region_December_2011_Lookup_in_England_and_Wales.csv') %>% 
+  group_by(LAD11CD) %>% 
+  summarise(Region=unique(RGN11NM))
+
+wardlookupregion<-wardlookup %>% 
+  inner_join(.,lad2region, by=("LAD11CD"))
+
+
+allinfections=read.table(file='Testing/BrigthonNewOutput/ForMattData.dat',sep = ' ')
+
+
+allinfections %>% # make long data frame
+  mutate(Time=row_number()) %>% # count up time, as row number
+  pivot_longer(-Time) %>% 
+  mutate(Ward=as.integer(str_remove(name,'V'))) %>% 
+  select(-name)->inf_long # rename name to Ward integers for easier matching
+
+
+wardlookupregion %>% 
+  inner_join(.,inf_long, by=c('FID'='Ward'),all.y=T,all.x=F) %>%
+  group_by(Region,Time)%>% 
+  summarise(Cases=sum(value)) -> region_inf
+
+region_inf%>%
+  group_by(Region) %>%
+  summarise(PeakTime=which.max(Cases),PeakCases=max(Cases))
+
+
+```
+# Plot region epidemics in ggplot
+```{r}
+
+
+region_inf %>% 
+  filter(Time<250) %>% 
+  ggplot(aes(x=Time,y=Cases,colour=Region)) +
+  geom_line(size=2,alpha=0.5)+
+  theme_minimal_grid()
+
+
+
+```

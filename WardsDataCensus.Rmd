@@ -47,6 +47,8 @@ https://geoportal.statistics.gov.uk/datasets/output-area-to-ward-to-local-author
 
 OA2Ward = read.csv('~/GitHub/MetaWards/data/2011/Output_Area_to_Ward_to_Local_Authority_District_December_2011_Lookup_in_England_and_Wales.csv') # maps OA to Ward data
 
+
+
 wardlookup<-read.csv('~/GitHub/MetaWards/data/2011/WardsProcessing/Ward_Lookup.csv')
 
 OA2Ward %>% left_join(.,wardlookup,by=c('WD11CD'='WD11CD'))->OA2WardLookup
@@ -162,11 +164,52 @@ Ward2WardAll %>%
 ```{r}
 lsoa2ccg = read.csv('~/GitHub/MetaWards/data/2011/CCG/Lower_Layer_Super_Output_Area_2011_to_Clinical_Commissioning_Group_to_Local_Authority_District_April_2017_Lookup_in_England_Version_4.csv')
 
+
+
 lsoa2ccg %>% 
-  group_by(CCG17CD) %>% 
+  group_by(LAD17NM) %>% 
   count()
 
 
 
 ```
+# Cities analysis
+```{r }
 
+OA2City<-read.csv('~/GitHub/MetaWards/data/2011/WardsProcessing/Output_Area_2011_to_Major_Towns_and_Cities_December_2015_Lookup_in_England_and_Wales.csv')
+
+OA2City %>% 
+  left_join(.,OA2Ward,by='OA11CD') %>% 
+  group_by(WD11CD) %>% 
+  summarise(City=max(TCITY15NM))->ward2city
+
+wardlookup<-read.csv('~/GitHub/MetaWards/data/2011/WardsProcessing/Ward_Lookup.csv') 
+lad2region<-read.csv('~/GitHub/MetaWards/data/2011/WardsProcessing/Output_Area_2011_to_Builtup_Area_Subdivision_to_Builtup_Area_to_Local_Authority_District_to_Region_December_2011_Lookup_in_England_and_Wales.csv') %>% 
+  group_by(LAD11CD) %>% 
+  summarise(Region=unique(RGN11NM))
+
+wardlookupregion<-wardlookup %>% 
+  inner_join(.,lad2region, by=("LAD11CD"))
+
+# merge onto wards lookup 
+
+wardlookupregionCity<-wardlookupregion %>% 
+  inner_join(.,ward2city, by=("WD11CD"))
+
+
+wardlookupregionCity %>% 
+  write_csv('~/GitHub/MetaWards/data/2011/WardsProcessing/WardLookupRegionCity.csv')
+
+
+```
+Trying to incorporate Scotland
+
+```{r}
+
+whole_uk_m<-read_csv(file='~/GitHub/MetaWards/data/2011/WholeUK/wu01uk_v2/wu01uk_v2.csv',)
+
+whole_uk_m %>% 
+  group_by(`Area of residence`) %>% 
+  count()
+
+```

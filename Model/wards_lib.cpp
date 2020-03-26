@@ -192,7 +192,8 @@ network *BuildWardsNetworkDistance(parameters *par)
 		x2=wards[links[i].ito].x;
 		y2=wards[links[i].ito].y;
 		
-		links[i].distance=plinks[i].distance=sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2));
+    links[i].distance=plinks[i].distance=sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2)); // well this is wrong.
+//    links[i].distance=plinks[i].distance=DistanceBetweenPlaces(x1,y1,x2,y2); // well this is wrong.
 #ifdef WEEKENDS
 		welinks[i].distance=links[i].distance;
 #endif
@@ -200,6 +201,29 @@ network *BuildWardsNetworkDistance(parameters *par)
 	fclose(locf);
 	return net;
 }
+
+double Radians(double x)
+{
+  return x * M_PI / 180;
+}
+
+double DistanceBetweenPlaces(
+    double lon1,
+    double lat1,
+    double lon2,
+    double lat2)
+{
+  double RADIUS = 6378.16;
+  double dlon = Radians(lon2 - lon1);
+  double dlat = Radians(lat2 - lat1);
+  
+  double a = (sin(dlat / 2) * sin(dlat / 2)) + cos(Radians(lat1)) * cos(Radians(lat2)) * (sin(dlon / 2) * sin(dlon / 2));
+  double angle = 2 * atan2(sqrt(a), sqrt(1 - a));
+  return angle * RADIUS;
+}
+
+
+
 
 network *BuildWardsNetworkDistanceIdentifiers(parameters *par){
 	FILE *inF=fopen(par->IdentifierName,"r");
@@ -985,9 +1009,9 @@ void SeedInfectionAtNode(network *net, parameters *par, int node_seed, int **inf
 	
 	while(links[j].ito!=node_seed || links[j].ifrom!=node_seed)j++;
 	
-		printf("j %d link from %d to %d\n",j,links[j].ifrom,links[j].ito);	
+	//	printf("j %d link from %d to %d\n",j,links[j].ifrom,links[j].ito);	
 	
-		printf("seeding here\n");
+	//	printf("seeding here\n");
 
 	if(links[j].suscept<par->initial_inf){
 		wards[node_seed].play_suscept-=par->initial_inf;
@@ -1400,8 +1424,9 @@ int ExtractData(network *net,int **inf,int **pinf, int t, FILE **files){
 		fprintf(files[1],"%d ",nInfWards[i]);
 		fprintf(files[3],"%d ",PInfTot[i]);
 		
-		if(i==1)
-		  {Latent+=InfTot[i]+PInfTot[i];}
+		if(i==1){
+		  Latent+=InfTot[i]+PInfTot[i];
+		}
 		else if(i<N_INF_CLASSES-1 & i>1){
 			Total+=InfTot[i]+PInfTot[i];
 		}
@@ -1442,7 +1467,7 @@ int ExtractData(network *net,int **inf,int **pinf, int t, FILE **files){
 	printf("I: %d    ",Total);
 	printf("R: %d    ",Recovereds);
 	printf("IW: %d   ",nInfWards[0]);
- 	printf("TOTAL POPULATION %d\n",Susceptibles+Total+Recovereds);
+ 	printf("TOTAL POPULATION %d\n",Susceptibles+Latent+Total+Recovereds);
 
 	return (Total+Latent);
 }
@@ -1551,9 +1576,9 @@ parameters *InitialiseParameters(){
 	
 #ifdef NCOV
 	//double beta[N_INF_CLASSES]={	0, 0, 0.95, 0.95, 0};
-	double beta[N_INF_CLASSES]={	0, 0, 0.95, 0.95, 0};
+	double beta[N_INF_CLASSES]={	0, 0, 1.0/1.15, 1.0/1.15, 0};
 	//double Progress[N_INF_CLASSES]={	1, 1.0/5.2, 1.0/1.1, 1/1.1, 0};
-	double Progress[N_INF_CLASSES]={	1, 0.1923, 0.909091, 0.909091, 0};
+	double Progress[N_INF_CLASSES]={	1, 1.0/5.2, 1.0/1.15, 1.0/1.15, 0};
 	double TooIllToMove[N_INF_CLASSES]={ 0, 0, 0, 0.0, 0};
  	double ContribFOI[N_INF_CLASSES]={1, 1, 1, 1, 0}; // set to 1 for the time being;
 #endif
@@ -1621,22 +1646,23 @@ void ReadParametersFile(parameters *par, char *fname,int lineno){
       i++;
     }
     fclose(file);
+    par->beta[2]=b2;
+    par->beta[3]=b3;
+    par->Progress[1]=s2;  
+    par->Progress[2]=s3;
+    par->Progress[3]=s4; 
   }
   else
   {
-    printf("ERROR: File %s not found\n",fname);//file doesn't exist
+    printf("ERROR: File %s not found\n",fname);//file doesn't exist default to hard-wirede parameters
   }
   
   //printf("Parameters used: b2: %lf b3:  %lf s2:  %lf s3:  %lf s4:  %lf\n",b2,b3,s2,s3,s4);
   
-  par->beta[2]=b2;
-  par->beta[3]=b3;
-  par->Progress[1]=s2;  
-  par->Progress[2]=s3;
-  par->Progress[3]=s4;  
+ 
   
-//    printf("Parameters used: b0: %lf b1:  %lf b2:  %lf b3:  %lf b4:  %lf\n",par->beta[0],par->beta[1],par->beta[2],par->beta[3],par->beta[4]);
-//    printf("prog0: %lf prog1:  %lf prog2:  %lf prog3:  %lf prog4:  %lf\n",par->Progress[0],par->Progress[1],par->Progress[2],par->Progress[3],par->Progress[4]);
+    printf("Parameters used: b0: %lf b1:  %lf b2:  %lf b3:  %lf b4:  %lf\n",par->beta[0],par->beta[1],par->beta[2],par->beta[3],par->beta[4]);
+    printf("prog0: %lf prog1:  %lf prog2:  %lf prog3:  %lf prog4:  %lf\n",par->Progress[0],par->Progress[1],par->Progress[2],par->Progress[3],par->Progress[4]);
   
   return;
   
@@ -1735,7 +1761,8 @@ void SetInputFileNames(int choice,parameters *par){
 void Iterate(network *net, int **inf, int **playinf, parameters *par, gsl_rng *r,int t){
 
 	int i,j,k;
-	double temp,uv=par->UV,uvscale=(1-uv/2.0+uv*cos(2*M_PI*t/365.0)/2.0);
+	double temp,uv=par->UV,uvscale=1;
+	
 	int staying, moving,playmove,l;
 	double InfProb,Rate;
 
@@ -1745,6 +1772,17 @@ void Iterate(network *net, int **inf, int **playinf, parameters *par, gsl_rng *r
 
 	double thresh=0.01;
 //	int DayInfW,DayInfP,NightInfW,NightInfP;
+
+  if(uv>0.0){
+    uvscale=(1-uv/2.0+uv*cos(2*M_PI*(t)/365.0)/2.0); // starting day = 41
+  }
+
+
+  if(t > par->controlsON && t < par->controlsOFF){
+    uvscale = uvscale*par->controlScale;
+    //cutoff = 1000;
+  } // starts on day ON stops on day OFF
+
 
 	
 	to_link *links=net->to_links;

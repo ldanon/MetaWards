@@ -106,6 +106,15 @@ void RemoveFromList(from_link *l);
 network *BuildWardsNetwork(parameters *par);
 network *BuildWardsNetworkDistance(parameters *par);
 network *BuildWardsNetworkDistanceIdentifiers(parameters *par);
+
+double DistanceBetweenPlaces(
+    double lon1,
+    double lat1,
+    double lon2,
+    double lat2);
+
+double Radians(double x);
+
 int ApplyStaticDistanceCutoff(network *net, parameters *par);
 void FillInGaps(network *net);
 

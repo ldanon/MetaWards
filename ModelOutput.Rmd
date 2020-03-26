@@ -86,7 +86,7 @@ wardcurves %>%
 
 ```{r}
 
-#pathname='Locations'
+
 
 
 readincidence<-function (fname,fpath){        # read and process a single file
@@ -114,6 +114,12 @@ readPrevalence<-function (fname,fpath){        # read and process a single file
 
 
 ```{r}
+
+pathname='OldRuns/'
+dir(pathname,pattern='PlayInfections.dat',recursive=TRUE)->pfilenames
+dir(pathname,pattern='WorkInfections.dat',recursive=TRUE)->wfilenames
+
+
 #PLAY infecteds
 dataIP <- tibble(filename = pfilenames) %>% # create a data frame
                                                   # holding the file names
@@ -141,25 +147,27 @@ bind_cols(dataIW,dataIP) %>%
   select(Time,Incidence,Recovered,Location,Run)->dataIR
 
 dataIR %>%
+  mutate(Date=as.Date(Time,origin='2020-02-10')) %>% 
   #mutate(Incidence=Incidence/10^6) %>% 
   #mutate(Recovered=Recovered/10^6) %>% 
   filter(Time<450) %>% 
-  ggplot(aes(x=Time,colour=Run))+
-  geom_line(aes(y=Incidence),alpha=0.1)+
+  ggplot(aes(x=Date,group=Run))+
+  geom_line(aes(y=Incidence),alpha=0.3,size=1,colour='red')+
 #  geom_line(aes(y=Recovered),alpha=0.1)+
-  facet_wrap(~Location)+
+#  facet_wrap(~Location)+
   theme_minimal_grid()+
   theme(legend.position = "none")+
  #scale_y_continuous(labels = unit_format(unit = "M"))+
-  xlab('Time (days)')
-#->p
+  xlab('Time')+
+  scale_x_date(breaks=date_breaks("3 months"),
+               labels = date_format("%b"))->p
 #ggplotly(p)
-
+p
 dataIR %>% 
   group_by(Run) %>% 
   summarise(PeakIncidence=max(Incidence)) %>% 
   summary()
-  
+
 ```
 
 # Time To Peak Incidence
@@ -169,11 +177,11 @@ dataIR %>%
    group_by(Run) %>% 
    summarise(TimeToPeak=which.max(Incidence)) %>% 
    ggplot(aes(x=TimeToPeak))+
-   geom_histogram(aes(y=..density..),bins=15)+
+   geom_histogram(aes(y=..density..),bins=12)+
   geom_density()+
   theme_minimal_grid()+
   xlab('Time to Peak Incidence')+
-  ylab('Density')
+  ylab('Density')->p2
 
 dataIR %>% 
    group_by(Run) %>% 
@@ -235,11 +243,12 @@ dataIR %>%
   summarise(AttackRate=max(Recovered)) %>%
   mutate(AttackRate2=100*AttackRate/56082077) %>% 
   ggplot(aes(x=AttackRate2))+
-  geom_histogram(aes(y=..density..),bins=15)+
+  geom_histogram(aes(y=..density..),bins=10)+
   geom_density()+
   xlab('Attack Rate (%)')+
   ylab('Density')+
-  theme_minimal_grid()
+  theme_minimal_grid()+
+  theme(axis.text.x = element_text(angle = 90))->p3
 
 
 dataIR %>% 
@@ -250,64 +259,13 @@ dataIR %>%
   summary() 
 
 ```
-# UV Curves
 
 
-
-```{r UV}
-
-pathname = 'Testing'
-
-dir(pathname,pattern='PlayInfections.dat',recursive=TRUE)->pfilenames
-dir(pathname,pattern='WorkInfections.dat',recursive=TRUE)->wfilenames
-
-
-dataUVP <- tibble(filename = pfilenames) %>% # create a data frame
-                                                  # holding the file names
-  mutate(file_contents = map(filename,            # read files into a new data column
-                             ~readIncidenceRecovered(., pathname))) %>% # use the function written above to process files
-  mutate(Seasonal=str_remove(str_split(filename,'/',simplify = TRUE)[,1],'UV')) %>% 
-  #mutate(Run=str_split(filename,'/',simplify = TRUE)[,2]) %>% 
-  select(-filename) %>% 
-  unnest(cols=file_contents)
-  
-
-# WORK infected
-dataUVW <- tibble(filename = wfilenames) %>% # create a data frame
-                                                  # holding the file names
-  mutate(file_contents = map(filename,            # read files into a new data column
-                             ~readIncidenceRecovered(., pathname))) %>% # use the function written above to process files
-  mutate(Seasonal=str_remove(str_split(filename,'/',simplify = TRUE)[,1],'UV')) %>% 
-  #mutate(Run=str_split(filename,'/',simplify = TRUE)[,2]) %>% 
-  select(-filename) %>% 
-  unnest(cols=file_contents)
-
-bind_cols(dataUVW,dataUVP) %>% 
-  mutate(Incidence=Incidence+Incidence1) %>% 
-  mutate(Recovered=Recovered+Recovered1) %>% 
-  select(Time,Incidence,Recovered,Seasonal)->dataUV
-
-dataUV %>%
-  filter(Time<500) %>% 
-  ggplot(aes(x=Time,colour=Seasonal))+
-  geom_line(aes(y=Incidence),alpha=1,size=2)+
-#  geom_line(aes(y=Recovered),alpha=0.1)+
-  theme_minimal_grid()+
-#  theme(legend.position = "none")+
- #scale_y_continuous(labels = unit_format(unit = "M"))+
-  xlab('Time (days)')
-```
 ```{r}
+library(patchwork)
+patchwork<-p+(p2/p3)
 
-dataUV %>% 
-  group_by(UV) %>% 
-  summarise(which.max(Incidence),100*max(Recovered)/56082077)
-#->p
-#ggplotly(p)
+patchwork + plot_annotation(tag_levels = 'A')
 
-dataIR %>% 
-  group_by(Run) %>% 
-  summarise(PeakIncidence=max(Incidence)) %>% 
-  summary()
 
 ```

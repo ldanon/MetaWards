@@ -17,6 +17,7 @@
 //#define IMPORTS
 #define EXTRASEEDS
 
+#define MAXDAYS 1000
 #define NAMESIZEMAX 10
 #define MAXSIZE 10050 // this needs to be more or less accurate, plz. 
 #define MAXLINKS 2414000
@@ -90,6 +91,7 @@ typedef struct parameters{
 	
 	double DailyImports; // proportion of daily imports if #IMPORTS is defined
   double UV;
+  double controlsON,controlsOFF,controlScale;
 }parameters;
 
 

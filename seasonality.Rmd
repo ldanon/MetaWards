@@ -1,0 +1,200 @@
+---
+title: "Seasonality Model Plots"
+output: html_notebook
+---
+```{r}
+
+library(tidyverse)
+library(tidyverse)
+library(gghighlight)
+library(purrr)
+library(plotly)
+library(cowplot)
+library(scales)
+
+```
+
+# UV Curves
+
+
+
+```{r UV}
+
+readIncidenceRecovered<-function (fname,fpath){        # read and process a single file
+#  Function to read in Work/PlayInfections.dat' type files (many columns, one for each class only of infecteds, Time is row number)
+  d<-read_delim(file.path(fpath,fname),col_names=FALSE,delim=' ',col_types = "iiiiiii")%>% select(Time=X1,Incidence=X4,Recovered=X6)
+   return(d)
+}
+
+pathname = 'Testing'
+
+dir(pathname,pattern='PlayInfections.dat',recursive=TRUE)->pfilenames
+dir(pathname,pattern='WorkInfections.dat',recursive=TRUE)->wfilenames
+
+
+dataUVP <- tibble(filename = pfilenames) %>% # create a data frame
+                                                  # holding the file names
+  mutate(file_contents = map(filename,            # read files into a new data column
+                             ~readIncidenceRecovered(., pathname))) %>% # use the function written above to process files
+  mutate(Seasonal=str_remove(str_split(filename,'/',simplify = TRUE)[,1],'UV')) %>% 
+  #mutate(Run=str_split(filename,'/',simplify = TRUE)[,2]) %>% 
+  select(-filename) %>% 
+  unnest(cols=file_contents)
+  
+
+# WORK infected
+dataUVW <- tibble(filename = wfilenames) %>% # create a data frame
+                                                  # holding the file names
+  mutate(file_contents = map(filename,            # read files into a new data column
+                             ~readIncidenceRecovered(., pathname))) %>% # use the function written above to process files
+  mutate(Seasonal=str_remove(str_split(filename,'/',simplify = TRUE)[,1],'UV')) %>% 
+  #mutate(Run=str_split(filename,'/',simplify = TRUE)[,2]) %>% 
+  select(-filename) %>% 
+  unnest(cols=file_contents)
+
+bind_cols(dataUVW,dataUVP) %>% 
+  mutate(Incidence=Incidence+Incidence1) %>% 
+  mutate(Recovered=Recovered+Recovered1) %>% 
+  select(Time,Incidence,Recovered,Seasonal)->dataUV
+
+dataUV %>%
+  filter(Time<650) %>% 
+  mutate(Date=as.Date(Time,origin="2020-2-10")) %>% 
+  ggplot(aes(x=Date,colour=Seasonal))+
+  geom_line(aes(y=Incidence),alpha=1,size=1.5)+
+#  geom_line(aes(y=Recovered),alpha=0.1)+
+  theme_half_open()+
+  theme(legend.position = "top")+
+ #scale_y_continuous(labels = unit_format(unit = "M"))+
+  xlab('Time')+
+  scale_x_date(breaks=date_breaks("3 months"),
+               labels = date_format("%b"))->p
+
+
+```
+```{r}
+
+dataUV %>% 
+  group_by(Seasonal) %>% 
+  summarise(Peak=which.max(Incidence),PeakIncidence=max(Incidence),AttackRate=100*max(Recovered)/56082077)
+#->p
+#ggplotly(p)
+
+
+
+```
+
+```{r}
+t=1:365
+#theta=seq(0,2*pi,pi/100)
+
+seasonality<-function(t,m){ # function for summer dip curves (cos)
+  x=(1-m/2.0)+m*cos(2*pi*t/365)/2.0
+  return(tibble(t,x))
+  } 
+
+
+tibble(m=c(0,0.25,0.5,0.75,1)) %>% # run for a set of variables. 
+  mutate(seasoncols=map(m,~seasonality(t,.))) %>% 
+  unnest(cols=seasoncols) %>% 
+  mutate(Seasonal=as.factor(m))->seasoncurves
+
+seasoncurves %>% # generate inset 
+  mutate(Date=as.Date(t,origin="2020-1-1")) %>% 
+  ggplot(aes(x=Date,y=x,colour=Seasonal))+
+  geom_line(size=2,alpha=0.8)+
+  xlab('')+
+  ylab('Seasonal Scaling')+
+  theme_minimal_grid()+
+  theme(legend.position = 'none')+
+  panel_border()+
+  scale_y_continuous(position='right')+
+  scale_x_date(breaks=date_breaks("3 months"),
+               labels = date_format("%b"))->inset
+
+ggdraw(p)+
+  draw_plot(inset,.65,.5,.35,.4)
+
+```
+
+# Dispersal
+
+```{r}
+
+readMeanXY<-function (fname,fpath){        # read and process a single file
+#  Function to read in Work/PlayInfections.dat' type files (many columns, one for each class only of infecteds, Time is row number)
+  d<-read_delim(file.path(fpath,fname),col_names=FALSE,delim=' ',col_types = "idd")%>% select(Time=X1,MeanX=X2,MeanY=X3)
+   return(d)
+}
+
+readVarXY<-function (fname,fpath){        # read and process a single file
+#  Function to read in Work/PlayInfections.dat' type files (many columns, one for each class only of infecteds, Time is row number)
+  d<-read_delim(file.path(fpath,fname),col_names=FALSE,delim=' ',col_types = "idd")%>% select(Time=X1,VarX=X2,VarY=X3)
+   return(d)
+}
+
+pathname = 'Testing'
+dir(pathname,pattern='MeanXY.dat',recursive=TRUE)->meanfilenames
+dir(pathname,pattern='VarXY.dat',recursive=TRUE)->varfilenames
+
+
+dataUVMean <- tibble(filename = meanfilenames) %>% # create a data frame
+                                                  # holding the file names
+  mutate(file_contents = map(filename,            # read files into a new data column
+                             ~readMeanXY(., pathname))) %>% # use the function written above to process files
+  mutate(Seasonal=str_remove(str_split(filename,'/',simplify = TRUE)[,1],'UV')) %>% 
+  #mutate(Run=str_split(filename,'/',simplify = TRUE)[,2]) %>% 
+  select(-filename) %>% 
+  unnest(cols=file_contents)
+
+
+dataUVVar <- tibble(filename = varfilenames) %>% # create a data frame
+                                                  # holding the file names
+  mutate(file_contents = map(filename,            # read files into a new data column
+                             ~readVarXY(., pathname))) %>% # use the function written above to process files
+  mutate(Seasonal=str_remove(str_split(filename,'/',simplify = TRUE)[,1],'UV')) %>% 
+  #mutate(Run=str_split(filename,'/',simplify = TRUE)[,2]) %>% 
+  select(-filename) %>% 
+  unnest(cols=file_contents)
+
+
+bind_cols(dataUVMean,dataUVVar) %>% 
+  select(-Seasonal1,-Time1)->dataUVVarMean
+
+```
+
+
+```{r}
+dataUVVarMean %>% 
+  pivot_longer(cols=c(MeanX,MeanY,VarX,VarY)) %>% 
+  filter(name%in%c('MeanX','MeanY')) %>% 
+  ggplot(aes(x=Time,colour=name))+
+  geom_line(aes(y=value),alpha=0.8,size=1.5)+
+  facet_wrap(~Seasonal)+
+  theme_minimal()+
+  theme(legend.position = "top")+
+  xlab('Time')
+#  scale_x_date(breaks=date_breaks("3 months"),
+#               labels = date_format("%b"))
+
+dataUVVarMean %>% 
+  pivot_longer(cols=c(MeanX,MeanY,VarX,VarY)) %>% 
+  filter(name%in%c('VarX','VarY')) %>% 
+  ggplot(aes(x=Time,colour=name))+
+  geom_line(aes(y=value),alpha=0.8,size=1.5)+
+  facet_wrap(~Seasonal)+
+  theme_minimal()+
+  theme(legend.position = "top")+
+  xlab('Time')+
+  ylim(0,2e10)
+```
+```{r}
+
+# Full model output with variablity 
+
+
+
+
+
+
+```
