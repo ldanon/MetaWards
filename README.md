@@ -1,6 +1,9 @@
 # MetaWards
 
 ## References
+- _"The role of routine versus random movements on the spread of disease in Great Britain"_
+Leon Danon, Thomas A. House, Matt J. Keeling, Epidemics, 2009, Volume 1, Issue 4, December 2009, Pages 250-258
+DOI: [10.1016/j.epidem.2009.11.002](https://doi.org/10.1016/j.epidem.2009.11.002)
 
 - _"Individual identity and movement networks for disease metapopulations"_
 Matt J. Keeling, Leon Danon, Matthew C. Vernon, Thomas A. House
@@ -14,7 +17,7 @@ medRxiv 2020.02.12.20022566; doi: [10.1101/2020.02.12.20022566](https://doi.org/
 
 This repository has the code used for the papers and preprints in the References section
 
-## Dependancies
+## Dependencies
 
 The code depends on the [GSL - the GNU Scientific Library](https://www.gnu.org/software/gsl/), install with your operating 
 system's package manager or load the appropriate module if you are on an HPC system.
