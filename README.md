@@ -46,13 +46,7 @@ MetaWards currently expects the data files to be found in a hard coded path unde
 ```ShellSession
 [user@host MetaWards]$ mkdir expt
 [user@host MetaWards]$ cd expt
-[user@host MetaWards]$ ../wards.o 42 Testing/ncovparams.csv  4 1
-```
-
-Where the command line arguments are
-
-```
-./wards.o <RANDOM_SEED> <PARAMETER_FILE> <SOME_NUMBER> <SOME_OTHER_NUMBER>
+[user@host expt]$ ../wards.o 42 Testing/ncovparams.csv  4 1
 ```
 
 ### Running an ensemble
