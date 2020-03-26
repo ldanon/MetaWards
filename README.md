@@ -21,6 +21,8 @@ system's package manager or load the appropriate module if you are on an HPC sys
 
 ## Building
 
+![C/C++ CI](https://github.com/ldanon/MetaWards/workflows/C/C++%20CI/badge.svg)
+
 Clone the repository 
 
 ```ShellSession
