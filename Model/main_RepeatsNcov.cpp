@@ -49,9 +49,16 @@ int main(int argc, char *argv[]){
 	
 	par->UV=atof(argv[4]);
 	
+	par->controlsON = 70;
+	par->controlsOFF = par->controlsON+184;
+  //par->controlScale = 0.3; 
+  par->controlScale = 0.7;
+  //par->controlScale = 0.583;
+  
 	SetInputFileNames(4,par);
 	
-
+	strcpy(par->AdditionalSeeding,argv[5]);
+  printf("%s\n",par->AdditionalSeeding);
 	
 	nseeds=ReadDoneFile(par->SeedName,to_seed);
 	
@@ -72,11 +79,8 @@ int main(int argc, char *argv[]){
 
 	par->DynDistCutoff=*max+1;
 
-//	for(i=0;i<N_INF_CLASSES;i++)beta[i]=par->beta[i];
-//	for(i=0;i<N_INF_CLASSES;i++)par->beta[i]=beta[i]*(1.4/1.9);
-	
 	s=-1;
-	par->StaticPlayAtHome=0.0;
+	par->StaticPlayAtHome=0.7;
 	ResetEverything(net,par);
 	RescalePlayMatrix(net,par);
 	

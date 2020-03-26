@@ -1,0 +1,311 @@
+---
+title: "Spatial Analysis"
+output: html_notebook
+---
+
+```{r}
+
+library(tidyverse)
+library(tidyverse)
+library(gghighlight)
+library(purrr)
+library(plotly)
+library(cowplot)
+library(scales)
+
+```
+
+```{r}
+
+readSpatialFile<-function (fname,fpath){        # read and process a single file
+#  Function to read in Work/PlayInfections.dat' type files (many columns, one for each class only of infecteds, Time is row number)
+  fname=str_c(fpath,fname)
+  read.table(file=fname,sep =' ') %>% # make long data frame
+  mutate(Time=row_number()) %>% # count up time, as row number
+  pivot_longer(-Time) %>% 
+  mutate(Ward=as.integer(str_remove(name,'V'))) %>% 
+  select(-name)->inf_long # rename name to Ward integers for easier matching
+  return(inf_long)
+}
+
+
+#readSpatialFile(spatialfiles[1],pathname)->tmp # How  to use the above two functions. 
+
+dataS <- tibble(filename = spatialfiles) %>% # create a data frame
+                                                  # holding the file names
+  mutate(file_contents = map(filename,            # read files into a new data column
+                             ~readSpatialFile(., pathname))) %>% # use the function written above to process files
+  mutate(Location=(str_split(filename,'/',simplify = TRUE)[,1])) %>% 
+  mutate(Run=as.numeric(str_split(filename,'/',simplify = TRUE)[,2])) %>% 
+  select(-filename) %>% 
+  unnest(cols=file_contents)
+
+
+```
+
+```{r functions}
+lookupfile='~/GitHub/MetaWards/data/2011/WardsProcessing/WardLookupRegionCity.csv'
+
+readlookupfile<-function (fname){
+df <-   read_csv(lookupfile,col_name=TRUE,cols(
+  WD11CD = col_character(),
+  WD11NM = col_character(),
+  WD11NMW = col_character(),
+  CMWD11CD = col_character(),
+  CMWD11NM = col_character(),
+  CMWD11NMW = col_character(),
+  IND = col_double(),
+  LAD11CD = col_character(),
+  LAD11NM = col_character(),
+  LAD11NMW = col_character(),
+  FID = col_double(),
+  Region = col_character(),
+  City = col_character()
+)
+)
+return(df)
+}
+
+wardlookupregionCity <-readlookupfile(lookupfile)
+
+wardlookupregionCity %>% 
+  inner_join(.,inf_long, by=c('FID'='Ward'),all.y=T,all.x=F) %>%
+  group_by(City,Time)%>% 
+  summarise(Cases=sum(value)) -> city_inf
+
+TimeToPeakCities<-function (df,cities){
+  df %>% 
+    filter(City%in%cities) %>% 
+    group_by(City) %>% 
+    summarise(TimeToPeak=which.max(Cases))->d
+  return(d)
+}
+
+
+ExtractTimeToPeakCities <- function(fname,path,cities,lookupfile){
+  wardlookupregionCity <- readlookupfile(lookupfile)
+  readSpatialFile(fname,path)->inf_long
+  
+  wardlookupregionCity %>% 
+    inner_join(.,inf_long, by=c('FID'='Ward'),all.y=T,all.x=F) %>%
+    group_by(City,Time)%>% 
+    summarise(Cases=sum(value)) -> city_inf
+  
+  TimeToPeakCities(city_inf,cities)->d
+  return(d)
+}
+
+
+cities=c('London','Liverpool','Birmingham','Sheffield','Bristol','Cardiff','Manchester')
+
+ExtractTimeToPeakCities(spatialfiles[1],pathname,cities,lookupfile)
+
+
+
+```
+
+now  do it for all of them
+
+```{r}
+
+pathname='~/GitHub/MetaWards/Runs/29_02/'
+dir(pathname,pattern='ForMattData.dat',recursive=TRUE)->spatialfiles
+
+
+# FromToPeak <- tibble(filename = spatialfiles) %>% # create a data frame
+#                                                   # holding the file names
+#   mutate(timetopeaks = map(filename,            # read files into a new data column
+#                              ~ExtractTimeToPeakCities(.,pathname,cities,lookupfile))) %>% # use the function written above to process files
+#   mutate(Location=(str_split(filename,'/',simplify = TRUE)[,1])) %>% 
+#   mutate(Run=as.numeric(str_split(filename,'/',simplify = TRUE)[,2])) %>% 
+#   select(-filename) %>% 
+#   unnest(cols=timetopeaks)
+
+# write_csv(path='~/GitHub/MetaWards/Runs/29_02/FromToPeak.csv',FromToPeak)
+
+FromToPeak=read_csv(file='~/GitHub/MetaWards/Runs/29_02/FromToPeak.csv')
+
+```
+
+
+```{r}
+
+FromToPeak %>% 
+  filter(City!='Newcastle upon Tyne') %>% 
+  mutate(R0=ifelse(Run<10,'1.95','2.4'))%>% 
+  mutate(WeeksToPeak=floor(TimeToPeak/7)) %>% 
+  ggplot(aes(y=WeeksToPeak,x=City))+
+  geom_boxplot()+
+  facet_grid(R0~Location,scales = 'free_y')+
+  theme(axis.text.x = element_text(angle = 90))
+```
+```{r}
+library(viridis)
+
+mid=mean(FromToPeak$TimeToPeak/7)
+
+FromToPeak %>% 
+  filter(City!='Newcastle upon Tyne') %>% 
+  mutate(R0=ifelse(Run<10,'R0=1.95','R0=2.4'))%>% 
+  mutate(Location=as.factor(Location)) %>% 
+  mutate(City=as.factor(City)) %>% 
+  group_by(Location,City,R0) %>% 
+  summarise(MeanTimeToPeak=mean(TimeToPeak/7))%>% 
+  ggplot(aes(x=Location,y=City,colour=MeanTimeToPeak))+
+  geom_point(size=7)+
+  facet_wrap(~R0)+
+  scale_color_gradient2(midpoint=mid, low="darkblue", mid="red",
+                     high="white", space ="Lab" )+
+  theme(axis.text.x = element_text(angle = 90))+
+  ylab('Destination city')+
+  xlab('Seeding city')
+
+
+
+
+
+```
+
+
+```{r}
+
+# path='~/GitHub/MetaWards/Runs/29_02/Generalised/'
+# dir(path,pattern='ForMattData.dat',recursive=TRUE)->generalisedSF
+# 
+# FromToPeakGeneralised<-
+#   tibble(filename = generalisedSF) %>% # create a data frame
+#                                                    # holding the file names
+#    mutate(timetopeaks = map(filename,            # read files into a new data column
+#                               ~ExtractTimeToPeakCities(.,path,cities,lookupfile))) %>% # use the function written above to process files
+# #   mutate(Location='Generalised') %>% 
+#    mutate(Run=as.numeric(str_split(filename,'/',simplify = TRUE)[,1])) %>% 
+#    select(-filename) %>% 
+#    unnest(cols=timetopeaks)
+
+#write_csv(path='~/GitHub/MetaWards/Runs/29_02/FromToPeakGeneralised.csv',FromToPeakGeneralised)
+
+read_csv(path='~/GitHub/MetaWards/Runs/29_02/FromToPeakGeneralised.csv')
+
+FromToPeakGeneralised %>% 
+  filter(City!='Newcastle upon Tyne') %>% 
+  filter(Run!='20') %>% 
+  mutate(R0=ifelse(Run<10,'R0=1.95','R0=2.4'))%>% 
+  mutate(WeeksToPeak=floor(TimeToPeak/7))%>% 
+  ggplot(aes(y=WeeksToPeak,x=City))+
+  geom_boxplot()+
+  facet_grid(~R0)+
+  theme(axis.text.x = element_text(angle = 90))+
+  xlab('Destination city')+
+  ylab('Number of weeks to peak')
+  
+ggsave(filename = '~/GitHub/MetaWards/ForSpiM/02_03/Figure2a.png')
+```
+
+
+```{r}
+
+
+path='~/GitHub/MetaWards/Runs/29_02/Generalised/'
+dir(path,pattern='ForMattData.dat',recursive=TRUE)->generalisedSF
+ 
+readSpatialFile(generalisedSF[15],path)->inf_long
+  
+wardlookupregionCity %>% 
+    inner_join(.,inf_long, by=c('FID'='Ward'),all.y=T,all.x=F) %>%
+    group_by(City,Time)%>% 
+    summarise(Cases=sum(value)) -> city_inf
+
+
+GeneralisedAll<-
+    tibble(filename = generalisedSF) %>% # create a data frame
+                                                    # holding the file names
+    mutate(spatialepidemics = map(filename,            # read files into a new data column
+                               ~readSpatialFile(.,path))) %>% # use the function written above to process files
+# #   mutate(Location='Generalised') %>% 
+    mutate(Run=as.numeric(str_split(filename,'/',simplify = TRUE)[,1])) %>% 
+    select(-filename) %>% 
+    unnest(cols=spatialepidemics)
+
+
+
+wardlookupregionCity %>% 
+    inner_join(.,GeneralisedAll, by=c('FID'='Ward'),all.y=T,all.x=F)%>%
+    group_by(City,Run,Time)%>% 
+    summarise(Cases=sum(value)) -> city_inf_all
+#write_csv(path='~/GitHub/MetaWards/Runs/29_02/City_Inf_All_Generalised.csv',city_inf_all)
+
+```
+
+```{r}
+
+%>% 
+  filter(Time>20) read_csv(file='~/GitHub/MetaWards/Runs/29_02/City_Inf_All_Generalised.csv')->city_inf_all
+
+cities2=c('London','Cardiff','Sheffield')
+
+city_inf_all %>% 
+  filter(Time<200) %>% 
+  filter(City%in%cities2) %>% 
+  filter(Run%in%c(0,10)) %>% 
+  group_by(City,Run) %>% 
+  mutate(PropInfectious=Cases/sum(Cases),TimeToPeak=which.max(Cases))%>%
+  mutate(TimeFromPeak=Time-TimeToPeak) %>% 
+  mutate(R0=ifelse(Run<10,'R0=1.95','R0=2.4')) %>% 
+  ggplot(aes(x=Time,y=PropInfectious))+
+  geom_line(aes(colour=City),alpha=0.9,size=1)+
+  facet_wrap(~R0)+
+  theme_minimal()
+```
+
+
+```{r}
+readSpatialFile(generalisedSF[15],path)->inf_long
+  
+wardlookupregionCity %>% 
+    inner_join(.,inf_long, by=c('FID'='Ward'),all.y=T,all.x=F) %>%
+    group_by(City,Time)%>% 
+    summarise(Cases=sum(value)) -> city_inf
+
+city_inf %>% 
+  group_by(City) %>% 
+  filter(City%in%cities2) %>% 
+  filter(Time<250, Time>80) %>% 
+  mutate(PropInfectious=Cases/sum(Cases),TimeToPeak=which.max(Cases))%>%
+  mutate(TimeFromPeak=Time-TimeToPeak) %>% 
+  ggplot(aes(x=Time,y=PropInfectious))+
+  geom_line(aes(colour=City),alpha=0.9,size=1)+
+ # facet_wrap(~R0)+
+  theme_minimal()
+
+
+
+city_inf %>% 
+  filter(City%in%cities) %>% 
+  group_by(City) %>% 
+  summarise(Peak=which.max(Cases))
+  
+
+```
+
+
+## By Week
+
+```{r}
+# by week
+city_inf_all %>% 
+  filter(City%in%cities2) %>% 
+  filter(Run%in%c(0,10)) %>% 
+  group_by(City,Run) %>% 
+  mutate(PropInfectious=Cases/sum(Cases),TimeToPeak=which.max(Cases))%>%
+  mutate(TimeFromPeak=Time-TimeToPeak) %>% 
+  ungroup() %>% 
+  group_by(City,Run,WeekFromPeak=floor(TimeFromPeak/7)) %>% 
+  summarise(WeeklyInf=sum(PropInfectious))%>% 
+  mutate(R0=ifelse(Run<10,'R0=1.95','R0=2.4')) %>% 
+  ggplot(aes(x=WeekFromPeak,y=WeeklyInf))+
+  geom_line(aes(colour=City))+
+  facet_wrap(~R0)
+
+
+
+```

@@ -115,7 +115,7 @@ readPrevalence<-function (fname,fpath){        # read and process a single file
 
 ```{r}
 
-pathname='Locations'
+pathname='OldRuns/'
 dir(pathname,pattern='PlayInfections.dat',recursive=TRUE)->pfilenames
 dir(pathname,pattern='WorkInfections.dat',recursive=TRUE)->wfilenames
 
@@ -160,15 +160,14 @@ dataIR %>%
  #scale_y_continuous(labels = unit_format(unit = "M"))+
   xlab('Time')+
   scale_x_date(breaks=date_breaks("3 months"),
-               labels = date_format("%b"))
-#->p
+               labels = date_format("%b"))->p
 #ggplotly(p)
-
+p
 dataIR %>% 
   group_by(Run) %>% 
   summarise(PeakIncidence=max(Incidence)) %>% 
   summary()
-  
+
 ```
 
 # Time To Peak Incidence
@@ -178,11 +177,11 @@ dataIR %>%
    group_by(Run) %>% 
    summarise(TimeToPeak=which.max(Incidence)) %>% 
    ggplot(aes(x=TimeToPeak))+
-   geom_histogram(aes(y=..density..),bins=15)+
+   geom_histogram(aes(y=..density..),bins=12)+
   geom_density()+
   theme_minimal_grid()+
   xlab('Time to Peak Incidence')+
-  ylab('Density')
+  ylab('Density')->p2
 
 dataIR %>% 
    group_by(Run) %>% 
@@ -244,11 +243,12 @@ dataIR %>%
   summarise(AttackRate=max(Recovered)) %>%
   mutate(AttackRate2=100*AttackRate/56082077) %>% 
   ggplot(aes(x=AttackRate2))+
-  geom_histogram(aes(y=..density..),bins=15)+
+  geom_histogram(aes(y=..density..),bins=10)+
   geom_density()+
   xlab('Attack Rate (%)')+
   ylab('Density')+
-  theme_minimal_grid()
+  theme_minimal_grid()+
+  theme(axis.text.x = element_text(angle = 90))->p3
 
 
 dataIR %>% 
@@ -257,5 +257,15 @@ dataIR %>%
   mutate(Deaths=AttackNumbers/100) %>% 
   mutate(AttackRate=100*AttackNumbers/56082077) %>%
   summary() 
+
+```
+
+
+```{r}
+library(patchwork)
+patchwork<-p+(p2/p3)
+
+patchwork + plot_annotation(tag_levels = 'A')
+
 
 ```

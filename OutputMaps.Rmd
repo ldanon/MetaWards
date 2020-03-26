@@ -68,7 +68,7 @@ mapview(wardslookuparrivalShef,zcol='AltArrival',cex = 'AltArrival')
 
 ```{r}
 
-allinfectionsLon=read.table(file='Testing/London/0/ForMattData.dat',sep = ' ')
+allinfectionsLon=read.table(file='OldRuns/London/0/ForMattData.dat',sep = ' ')
 
 allinfectionsLon %>% # make long data frame
   mutate(Time=row_number()) %>% # count up time, as row number
@@ -96,6 +96,10 @@ TimeToPeak %>%
   ggplot(aes(x=Time))+
   geom_histogram()
 
+arrivalsLon %>% 
+  ggplot(aes(x=Arrival))+
+  geom_histogram()
+
 ```
 
 ```{r}
@@ -106,14 +110,23 @@ wardslookup2 %>%
 
 wardslookuparrivalLon %>% 
   inner_join(.,TimeToPeak, by=c('FID'='Ward'))%>% 
-  mutate(AltTime=Time/100)->wardslookuparrivaltimetopeakL
+  mutate(AltTime=Arrival/1000)->wardslookuparrivaltimetopeakL
 
-mapview(wardslookuparrivaltimetopeakL,zcol='Time',cex = 'AltTime')
+mapview(wardslookuparrivaltimetopeakL,zcol='Arrival',cex = 'AltTime')
 
 
 # TODO:
 # Time to peak. DONE 
 # Time to 10 cases. 
 # Lookup from Postcode to Ward/OA.
+```
+
+
+```{r ccg map}
+CCGEW <- read_sf(dsn='~/GitHub/MetaWards/data/2011/shapefile/Clinical_Commissioning_Groups_April_2018_Full_Clipped_Boundaries_in_England',layer = 'Clinical_Commissioning_Groups_April_2018_Full_Clipped_Boundaries_in_England')
+
+mapview(CCGEW)+mapview(wardslookuparrivaltimetopeakL,zcol='Time',cex = 'AltTime')
+
+
 ```
 
