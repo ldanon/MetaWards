@@ -49,11 +49,11 @@ int main(int argc, char *argv[]){
 	
 	par->UV=atof(argv[4]);
 	
-	par->controlsON = 70;
+	par->controlsON = 15;
 	par->controlsOFF = par->controlsON+184;
-  //par->controlScale = 0.3; 
-  par->controlScale = 0.7;
-  //par->controlScale = 0.583;
+	//par->controlScale = 1; //R0=2.7
+  //par->controlScale = 0.8/2.7; 
+  par->controlScale = 1.2/2.7;
   
 	SetInputFileNames(4,par);
 	
