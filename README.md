@@ -39,7 +39,7 @@ Change in to the repository and run `make`
 [user@host Model]$ make
 ```
 
-This produces an executable named `wards.o`
+This produces an executable named `MetaWards.o`
 
 ## Running
 
@@ -51,7 +51,7 @@ MetaWards currently expects the data files to be found in a hard coded path unde
 ```ShellSession
 [user@host MetaWards]$ mkdir expt
 [user@host MetaWards]$ cd expt
-[user@host expt]$ ../wards.o 42 Testing/ncovparams.csv  4 1
+[user@host expt]$ ../MetaWards.o 42 Testing/ncovparams.csv  4 1
 ```
 
 ### Running an ensemble
