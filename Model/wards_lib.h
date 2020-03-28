@@ -148,7 +148,6 @@ void InfectAdditionalSeeds(network *net, parameters *par, int **inf,int **pinf,i
 void LoadAdditionalSeeds(char *fname);
 
 
-
 void SeedInfectionAtNode(network *net, parameters *par, int node_seed, int **inf, int **pinf);
 void ClearAllInfections(network *net, int **inf, int **pinf);
 
@@ -179,6 +178,8 @@ void OutputWardData(FILE **files,int *to_track,network *net,int **winf,int **pin
 
 int ExtractData(network *net,int **inf,int **pinf, int t, FILE **files);
 int ExtractDataForGraphicsToFile(network *net,int **inf,int **pinf,FILE *outF);
+int ExtractDataForGraphicsToFileIncidence(network *net, int **inf,int **pinf,FILE *outF);
+  
 
 double Rate2Prob(double R);
 

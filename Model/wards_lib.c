@@ -1150,8 +1150,8 @@ void RunModel(network *net, parameters *par, int **inf,
 		printf("\n%d %d\n",i,infecteds);
 
 		infecteds=ExtractData(net,inf,playinf,i,files);
-		ExtractDataForGraphicsToFile(net,inf,playinf,Export);
-
+		//ExtractDataForGraphicsToFile(net,inf,playinf,Export);
+		ExtractDataForGraphicsToFileIncidence(net,inf,playinf,Export);
 
 
 		i++;
@@ -1489,56 +1489,96 @@ int ExtractDataForGraphicsToFile(network *net, int **inf,int **pinf,FILE *outF){
 	
 	int i,j;
 
-	int InfTot[N_INF_CLASSES];
+//	int InfTot[N_INF_CLASSES];
 	int TotalInfWard[N_INF_CLASSES][MAXSIZE];
-		
+	
 	int Total=0;
 	int Recovereds,Susceptibles;
 	int TotalInfections[MAXSIZE];
 
 	Recovereds=Susceptibles=0;
 	
-	for(j=1;j<=net->nnodes;j++)TotalInfections[j]=0;
+	for(j=1;j<=net->nnodes;j++){
+	  TotalInfections[j]=0;
+	}
 
 	for(i=0;i<N_INF_CLASSES;i++){ 
 
 		for(j=1;j<=net->nnodes;j++)TotalInfWard[i][j]=0;
+
 		
-		
-		for(j=1;j<=net->nlinks;j++){
+		for(j=1;j<=net->nlinks;j++){ //commuters
 			if(inf[i][j]!=0){
-				InfTot[i]+=inf[i][j]; // number of infected links in class  i 
 				TotalInfWard[i][links[j].ifrom]+=inf[i][j];
-				if(i<N_INF_CLASSES-1){
+				if(i<N_INF_CLASSES-1){ // sum up all the infectious classes. 
 					TotalInfections[links[j].ifrom]+=inf[i][j];
 					Total+=inf[i][j];
 				}
 			}
 		}
-		
-		
-		
-		
-		for(j=1;j<=net->nnodes;j++){
-			TotalInfWard[i][j]+=pinf[i][j];
-			if(pinf[i][j]!=0 && i<N_INF_CLASSES-1){
-				TotalInfections[j]+=pinf[i][j];
-				Total+=pinf[i][j];			
+
+		for(j=1;j<=net->nnodes;j++){ //non-commuters
+			if(pinf[i][j]!=0){
+			  TotalInfWard[i][j]+=pinf[i][j];
+			  if(i<N_INF_CLASSES-1){ // sum up all the infectious classes. 
+				  TotalInfections[j]+=pinf[i][j];
+				  Total+=pinf[i][j];			
 			}
-			if(i==2)fprintf(outF,"%d ",TotalInfections[j]);// incidence
 			//if(i==N_INF_CLASSES-1)fprintf(outF,"%d ",TotalInfections[j]); // prevalences
 			//if(i==N_INF_CLASSES-1)Prevalence[j]=TotalInfections[j];
 		}
-
+		if(i==2)fprintf(outF,"%d ",TotalInfections[j]);// prevalence up to i=2
+			
 		  //if(i==N_INF_CLASSES-1)fprintf(outF,"%d ",TotalInfections[j]);// incidence
 		
-	}
-	
+		}
+	}//classes
 	fprintf(outF,"\n");
 	return Total;
 }
 
+int ExtractDataForGraphicsToFileIncidence(network *net, int **inf,int **pinf,FILE *outF){
+	  
+	  to_link *links=net->to_links;
+	  node *wards=net->nodes;
+	  
+	  int i,j;
+	  
+	  int TotalInfWard[N_INF_CLASSES][MAXSIZE]={0};
+	  
+	  int Total=0;
+	  int TotalInfections[MAXSIZE] = {0};
+	  
 
+	//  for(j=1;j<=net->nnodes;j++)TotalInfections[j]=0;
+	
+	  
+	  for(i=0;i<N_INF_CLASSES;i++){ //loop over classes
+	    
+	    //for(j=1;j<=net->nnodes;j++)TotalInfWard[i][j]=0; //set to zero
+	    
+	    for(j=1;j<=net->nlinks;j++){ //loop over all links
+	      if(inf[i][j]!=0){
+	        TotalInfWard[i][links[j].ifrom]+=inf[i][j]; // WORKERS: For each class sum up infections of all the outgoing links
+	      }
+	    } //end commuter links
+	    for(j=1;j<=net->nnodes;j++){ //non-commuters
+	      if(pinf[i][j]!=0){
+	        TotalInfWard[i][j]+=pinf[i][j];// number of individuals in class i
+	        //if(i==N_INF_CLASSES-1)fprintf(outF,"%d ",TotalInfections[j]); // prevalences
+	        //if(i==N_INF_CLASSES-1)Prevalence[j]=TotalInfections[j];
+	      }
+	      
+	      //if(i==N_INF_CLASSES-1)fprintf(outF,"%d ",TotalInfections[j]);// incidence
+
+	    }// end of loop over all nodes (non commuters)
+	 if(i==2)fprintf(outF,"%d ",TotalInfWard[i][j]);//incidence   
+	  }//end of loop over classes	    
+
+	  fprintf(outF,"\n");
+
+	  return Total;
+}
 
 
 

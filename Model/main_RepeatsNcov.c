@@ -53,7 +53,9 @@ int main(int argc, char *argv[]){
 	par->controlsOFF = par->controlsON+184;
 	//par->controlScale = 1; //R0=2.7
   //par->controlScale = 0.8/2.7; 
-  par->controlScale = 1.2/2.7;
+  //par->controlScale = 0.9/2.7; 
+  par->controlScale = 1.1/2.7; 
+  //par->controlScale = 1.2/2.7;
   
 	SetInputFileNames(4,par);
 	
