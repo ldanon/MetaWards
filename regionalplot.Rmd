@@ -16,26 +16,25 @@ library(scales)
 
 
 ```{r}
-wardlookup<-read.csv('~/GitHub/MetaWards/data/2011/WardsProcessing/Ward_Lookup.csv') 
-lad2region<-read.csv('~/GitHub/MetaWards/data/2011/WardsProcessing/Output_Area_2011_to_Builtup_Area_Subdivision_to_Builtup_Area_to_Local_Authority_District_to_Region_December_2011_Lookup_in_England_and_Wales.csv') %>% 
-  group_by(LAD11CD) %>% 
-  summarise(Region=unique(RGN11NM))
-
-wardlookupregion<-wardlookup %>% 
-  inner_join(.,lad2region, by=("LAD11CD"))
 
 
-allinfections=read.table(file='Testing/BrigthonNewOutput/ForMattData.dat',sep = ' ')
+wardlookupregionCity <-   read_csv('~/GitHub/MetaWards/data/2011/WardsProcessing/WardLookupRegionCity.csv')
 
 
-allinfections %>% # make long data frame
+
+
+read.table(file='Runs/30_02/UV0.0/1/ForMattData.dat',sep =' ') %>% # make long data frame
   mutate(Time=row_number()) %>% # count up time, as row number
   pivot_longer(-Time) %>% 
   mutate(Ward=as.integer(str_remove(name,'V'))) %>% 
   select(-name)->inf_long # rename name to Ward integers for easier matching
 
+```
 
-wardlookupregion %>% 
+
+```{r}
+
+wardlookupregionCity %>% 
   inner_join(.,inf_long, by=c('FID'='Ward'),all.y=T,all.x=F) %>%
   group_by(Region,Time)%>% 
   summarise(Cases=sum(value)) -> region_inf
@@ -51,11 +50,129 @@ region_inf%>%
 
 
 region_inf %>% 
-  filter(Time<250) %>% 
-  ggplot(aes(x=Time,y=Cases,colour=Region)) +
+#  filter(Time<250) %>% 
+  mutate(Date=as.Date(Time,origin="2020-3-01")) %>% 
+  ggplot(aes(x=Date,y=Cases,colour=Region)) +
   geom_line(size=2,alpha=0.5)+
-  theme_minimal_grid()
+  theme_minimal_grid()+
+  theme(legend.position = 'top')+
+  scale_x_date(breaks=date_breaks("3 months"),
+               labels = date_format("%b"))->p
 
 
+p
 
 ```
+
+
+```{r}
+
+wardlookupregionCity %>% 
+  inner_join(.,inf_long, by=c('FID'='Ward'),all.y=T,all.x=F) %>%
+  group_by(City,Time)%>% 
+  summarise(Cases=sum(value)) -> city_inf
+```
+
+```{r}
+
+#citiestoplot=c('London','Liverpool','Birmingham','Sheffield','Bristol','Coventry','Cardiff','Leeds','Bradford','Manchester')
+
+citiestoplot=c('London','Liverpool','Birmingham','Sheffield','Bristol','Cardiff','Manchester','Newcastle upon Tyne')
+
+city_inf %>% 
+  filter(City%in%citiestoplot) %>% 
+  mutate(Date=as.Date(Time,origin="2020-3-01")) %>% 
+
+#  filter(Time<250) %>% 
+  group_by(City) %>% 
+  mutate(PropCases=Cases/sum(Cases))%>% 
+  ungroup() %>% 
+  group_by(Week=floor(Time/7),City)%>% 
+  summarise(WeekPropCases=sum(PropCases))%>% 
+  ggplot(aes(x=Week,y=WeekPropCases,colour=City)) +
+  geom_line(size=2,alpha=0.5)+
+  theme_minimal_grid()+
+  theme(legend.position = 'top')+
+```
+
+```{r}
+city_inf %>% 
+  filter(City%in%citiestoplot) %>% 
+  mutate(Date=as.Date(Time,origin="2020-3-01")) %>% 
+
+#  filter(Time<250) %>% 
+  group_by(City) %>% 
+  mutate(PropCases=Cases/sum(Cases))%>% 
+  ungroup() %>% 
+#  group_by(Week=floor(Time/7),City)%>% 
+ # summarise(WeekPropCases=sum(PropCases))%>% 
+  ggplot(aes(x=Date,y=Cases,colour=City)) +
+  geom_line(size=2,alpha=0.5)+
+  stat_summary(fun.y = sum, na.rm = TRUE, color = 'black', geom ='line')+
+  theme_minimal_grid()+
+  theme(legend.position = 'top')+
+  scale_x_date(breaks=date_breaks("3 months"),
+               labels = date_format("%b"))
+```
+
+```{r}
+
+
+city_inf %>% 
+  filter(City%in%citiestoplot) %>% 
+  mutate(Date=as.Date(Time,origin="2020-3-01")) %>% 
+
+#  filter(Time<250) %>% 
+  group_by(City) %>% 
+  mutate(PropCases=Cases/sum(Cases))%>% 
+  ungroup() %>% 
+#  group_by(Week=floor(Time/7),City)%>% 
+ # summarise(WeekPropCases=sum(PropCases))%>% 
+  ggplot(aes(x=Date,y=PropCases,colour=City)) +
+  geom_line(size=1.5,alpha=0.5)+
+  stat_summary(fun.y = mean, na.rm = TRUE, color = 'black', geom ='line')+
+  theme_minimal_grid()+
+  theme(legend.position = 'top')+
+  scale_x_date(breaks=date_breaks("3 months"),
+               labels = date_format("%b"))
+
+```
+
+
+```{r}
+
+city_inf %>% 
+  filter(City%in%citiestoplot) %>% 
+  filter(Time<250) %>% 
+  group_by(City) %>% 
+  summarise(TimeToPeak=which.max(Cases))
+
+```
+
+
+
+```{r}
+city_inf %>% 
+  filter(City%in%citiestoplot) %>% 
+  group_by(Time) %>% 
+  mutate(WholeEpidemic = sum(Cases)) %>% 
+  ungroup() %>% 
+  mutate(TimeToPeak=which.max(WholeEpidemic))%>% 
+  mutate(TimeFromPeak=(Time-TimeToPeak))%>% 
+  group_by(City) %>% 
+  mutate(PropCases=Cases/sum(Cases))%>% 
+  ungroup() %>% 
+  group_by(City,Week = floor(TimeFromPeak/7)) %>% 
+  summarise(WeeklyCases = sum(Cases)) %>% 
+  mutate(PropWeeklyCases=WeeklyCases/sum(WeeklyCases)) %>% 
+#  filter(Week) %>% 
+  ggplot(aes(x=Week,y=PropWeeklyCases,colour=City)) +
+  geom_line(size=2,alpha=0.5)+
+  stat_summary(fun.y = mean, na.rm = TRUE, color = 'black', geom ='line')+
+
+  theme_minimal_grid()+
+  theme(legend.position = 'top')
+
+```
+
+
