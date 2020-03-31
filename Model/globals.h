@@ -21,6 +21,7 @@
 #define NAMESIZEMAX 10
 #define MAXSIZE 10050 // this needs to be more or less accurate, plz. 
 #define MAXLINKS 2414000
+#define NRESTRICTIONS 10
 #ifdef FLU
 	#define N_INF_CLASSES 5
 	#define START_SYMPTOM 2
@@ -91,7 +92,9 @@ typedef struct parameters{
 	
 	double DailyImports; // proportion of daily imports if #IMPORTS is defined
   double UV;
-  double controlsON,controlsOFF,controlScale;
+  double n_restrict;
+  double controlsON[NRESTRICTIONS],controlsOFF[NRESTRICTIONS],controlScale[NRESTRICTIONS];
+  
 }parameters;
 
 

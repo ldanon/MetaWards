@@ -1462,12 +1462,12 @@ int ExtractData(network *net,int **inf,int **pinf, int t, FILE **files){
 	fprintf(files[4],"%d \n",Total);
 	fflush(files[4]);
 
-	printf("S: %d    ",Susceptibles);
-	printf("E: %d    ",Latent);
-	printf("I: %d    ",Total);
-	printf("R: %d    ",Recovereds);
-	printf("IW: %d   ",nInfWards[0]);
- 	printf("TOTAL POPULATION %d\n",Susceptibles+Latent+Total+Recovereds);
+//	printf("S: %d    ",Susceptibles);
+//	printf("E: %d    ",Latent);
+//	printf("I: %d    ",Total);
+//	printf("R: %d    ",Recovereds);
+//	printf("IW: %d   ",nInfWards[0]);
+ //	printf("TOTAL POPULATION %d\n",Susceptibles+Latent+Total+Recovereds);
 
 	return (Total+Latent);
 }
@@ -1818,11 +1818,13 @@ void Iterate(network *net, int **inf, int **playinf, parameters *par, gsl_rng *r
   }
 
 
-  if(t > par->controlsON && t < par->controlsOFF){
-    uvscale = uvscale*par->controlScale;
-    //cutoff = 1000;
-  } // starts on day ON stops on day OFF
-
+  for(i=0;i<par->n_restrict;i++){
+    
+    if(t > par->controlsON[i] && t < par->controlsOFF[i]){
+      uvscale = uvscale*par->controlScale[i];
+      cutoff = 1000;
+    } // starts on day ON stops on day OFF
+  }
 
 	
 	to_link *links=net->to_links;
